@@ -104,20 +104,37 @@ impl JsonSchema for PluginId {
 mod tests {
     use super::*;
 
+    // --- 正常系（同値クラス: 逆ドメイン形式） ---
+
     #[test]
     fn accepts_reverse_domain_ids() {
-        for id in [
-            "com.example.fmea-check",
-            "jp.modelith.iso15288-rules",
-            "a.b",
-        ] {
-            assert!(id.parse::<PluginId>().is_ok(), "{id}");
-        }
+        // Arrange
+        let ids = ["com.example.fmea-check", "jp.modelith.iso15288-rules"];
+        // Act
+        let results: Vec<bool> = ids
+            .iter()
+            .map(|id| id.parse::<PluginId>().is_ok())
+            .collect();
+        // Assert
+        assert_eq!(results, [true, true]);
     }
 
     #[test]
+    fn accepts_minimum_two_single_letter_segments() {
+        // Arrange（境界値: 最短の 2 区切り・各 1 文字）
+        let id = "a.b";
+        // Act
+        let result = id.parse::<PluginId>();
+        // Assert
+        assert!(result.is_ok());
+    }
+
+    // --- 異常系（同値クラス: 区切り不足・大文字・空の区切り・数字始まり・使えない文字） ---
+
+    #[test]
     fn rejects_malformed_ids() {
-        for id in [
+        // Arrange
+        let ids = [
             "",
             "single",
             "Com.example",
@@ -125,14 +142,34 @@ mod tests {
             "com.example.",
             "1com.x",
             "com.ex_ample",
-        ] {
-            assert!(id.parse::<PluginId>().is_err(), "{id}");
-        }
+        ];
+        // Act
+        let accepted: Vec<&str> = ids
+            .iter()
+            .copied()
+            .filter(|id| id.parse::<PluginId>().is_ok())
+            .collect();
+        // Assert
+        assert!(accepted.is_empty(), "accepted: {accepted:?}");
     }
 
     #[test]
-    fn validates_on_deserialize() {
-        assert!(serde_json::from_str::<PluginId>(r#""com.example.ok""#).is_ok());
-        assert!(serde_json::from_str::<PluginId>(r#""NotValid""#).is_err());
+    fn deserialize_accepts_valid_id() {
+        // Arrange
+        let json = r#""com.example.ok""#;
+        // Act
+        let result = serde_json::from_str::<PluginId>(json);
+        // Assert
+        assert_eq!(result.unwrap().as_str(), "com.example.ok");
+    }
+
+    #[test]
+    fn deserialize_rejects_invalid_id() {
+        // Arrange
+        let json = r#""NotValid""#;
+        // Act
+        let result = serde_json::from_str::<PluginId>(json);
+        // Assert
+        assert!(result.is_err());
     }
 }

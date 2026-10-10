@@ -5,9 +5,11 @@ use std::path::Path;
 
 #[test]
 fn generated_files_are_up_to_date() {
+    // Arrange
     let root = Path::new(env!("CARGO_MANIFEST_DIR")).join("../..");
     let update = std::env::var_os("UPDATE_GENERATED").is_some();
     let mut stale = Vec::new();
+    // Act
     for (rel, content) in modelith_plugin_protocol::generate::files() {
         let path = root.join(rel);
         if update {
@@ -17,6 +19,7 @@ fn generated_files_are_up_to_date() {
             stale.push(rel);
         }
     }
+    // Assert
     assert!(
         stale.is_empty(),
         "stale generated files: {stale:?}\n\
