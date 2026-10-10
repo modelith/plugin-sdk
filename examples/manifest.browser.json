@@ -1,0 +1,15 @@
+{
+  "id": "com.example.reqif",
+  "name": "ReqIF インポータ",
+  "version": "1.2.0",
+  "apiVersion": "1",
+  "runtime": "browser",
+  "description": "ReqIF の要求を requirement def として取り込む",
+  "license": "Apache-2.0",
+  "main": "dist/index.js",
+  "permissions": ["model:read", "edits:propose"],
+  "contributes": {
+    "importers": [{ "id": "reqif", "label": "ReqIF", "extensions": [".reqif", ".reqifz"] }],
+    "commands": [{ "id": "reqif.reimport", "title": "ReqIF を再取り込み" }]
+  }
+}

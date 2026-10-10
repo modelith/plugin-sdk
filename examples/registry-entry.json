@@ -1,0 +1,17 @@
+{
+  "id": "com.example.fmea-check",
+  "name": "FMEA トレース検査",
+  "publisher": { "name": "Example Inc.", "github": "example-inc" },
+  "repository": "https://github.com/example-inc/modelith-fmea",
+  "apiVersion": "1",
+  "runtime": "rules",
+  "license": "MIT",
+  "pricing": "free",
+  "versions": [
+    {
+      "version": "0.1.0",
+      "url": "https://github.com/example-inc/modelith-fmea/releases/download/v0.1.0/plugin.zip",
+      "sha256": "0000000000000000000000000000000000000000000000000000000000000000"
+    }
+  ]
+}

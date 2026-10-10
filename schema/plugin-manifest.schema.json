@@ -1,0 +1,260 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Modelith plugin manifest",
+  "description": "プラグインのマニフェスト。",
+  "type": "object",
+  "properties": {
+    "apiVersion": {
+      "description": "対象とするプラグイン API のメジャーバージョン（plugin-sdk のメジャーバージョン）。",
+      "type": "string",
+      "pattern": "^\\d+$"
+    },
+    "contributes": {
+      "$ref": "#/$defs/Contributes",
+      "default": {}
+    },
+    "description": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "id": {
+      "$ref": "#/$defs/PluginId"
+    },
+    "license": {
+      "description": "SPDX ライセンス式。",
+      "type": "string"
+    },
+    "main": {
+      "description": "エントリポイント（`browser`: ESM ファイル、`wasm-component`: .wasm ファイル）。`rules` では不要。",
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "name": {
+      "description": "表示名。",
+      "type": "string"
+    },
+    "permissions": {
+      "description": "要求する権限。宣言していない操作はホストが拒否する。",
+      "type": "array",
+      "default": [],
+      "items": {
+        "$ref": "#/$defs/Permission"
+      }
+    },
+    "runtime": {
+      "$ref": "#/$defs/Runtime"
+    },
+    "version": {
+      "description": "プラグイン自身のバージョン（SemVer）。",
+      "type": "string",
+      "pattern": "^\\d+\\.\\d+\\.\\d+(-[0-9A-Za-z.-]+)?(\\+[0-9A-Za-z.-]+)?$"
+    }
+  },
+  "additionalProperties": false,
+  "required": [
+    "id",
+    "name",
+    "version",
+    "apiVersion",
+    "runtime",
+    "license"
+  ],
+  "$defs": {
+    "Command": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "title": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "title"
+      ]
+    },
+    "Contributes": {
+      "description": "プラグインが追加する機能（拡張点）。",
+      "type": "object",
+      "properties": {
+        "commands": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Command"
+          }
+        },
+        "exporters": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Exporter"
+          }
+        },
+        "importers": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Importer"
+          }
+        },
+        "palette": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/PaletteItem"
+          }
+        },
+        "rules": {
+          "description": "検査ルールのファイル（YAML）。",
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "views": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/View"
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "Exporter": {
+      "type": "object",
+      "properties": {
+        "extension": {
+          "description": "出力ファイルの拡張子（例: `.drawio`）。",
+          "type": "string"
+        },
+        "id": {
+          "type": "string"
+        },
+        "label": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "label",
+        "extension"
+      ]
+    },
+    "Importer": {
+      "type": "object",
+      "properties": {
+        "extensions": {
+          "description": "対応する拡張子（例: `.reqif`）。",
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "id": {
+          "type": "string"
+        },
+        "label": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "label",
+        "extensions"
+      ]
+    },
+    "PaletteItem": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "label": {
+          "type": "string"
+        },
+        "snippet": {
+          "description": "配置時に挿入する SysML v2 テキストの雛形。",
+          "type": "string"
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "label",
+        "snippet"
+      ]
+    },
+    "Permission": {
+      "description": "プラグインが要求できる権限。",
+      "oneOf": [
+        {
+          "description": "モデル（テキスト・解析結果）を読む。",
+          "type": "string",
+          "const": "model:read"
+        },
+        {
+          "description": "`TextEdit` による変更案を返す。",
+          "type": "string",
+          "const": "edits:propose"
+        },
+        {
+          "description": "ネットワークにアクセスする。",
+          "type": "string",
+          "const": "network"
+        },
+        {
+          "description": "プラグイン専用の永続ストレージを使う。",
+          "type": "string",
+          "const": "storage"
+        }
+      ]
+    },
+    "PluginId": {
+      "description": "Reverse-domain plugin id, e.g. \"com.example.my-plugin\".",
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9-]*(\\.[a-z][a-z0-9-]*)+$"
+    },
+    "Runtime": {
+      "description": "プラグインの実行方式（ADR-0004 の段階に対応）。",
+      "oneOf": [
+        {
+          "description": "v0: YAML 宣言ルール。コアが解釈するのでブラウザ・CLI・CI のどこでも動く。",
+          "type": "string",
+          "const": "rules"
+        },
+        {
+          "description": "v1: ESM を Web Worker で実行する。ブラウザのみ。",
+          "type": "string",
+          "const": "browser"
+        },
+        {
+          "description": "v2: WASM Component。ブラウザ・CLI・サーバで動く。",
+          "type": "string",
+          "const": "wasm-component"
+        }
+      ]
+    },
+    "View": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "label": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "label"
+      ]
+    }
+  }
+}

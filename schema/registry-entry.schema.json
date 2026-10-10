@@ -1,0 +1,133 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Modelith plugin registry entry",
+  "type": "object",
+  "properties": {
+    "apiVersion": {
+      "type": "string",
+      "pattern": "^\\d+$"
+    },
+    "id": {
+      "$ref": "#/$defs/PluginId"
+    },
+    "license": {
+      "description": "SPDX ライセンス式。",
+      "type": "string"
+    },
+    "name": {
+      "type": "string"
+    },
+    "pricing": {
+      "$ref": "#/$defs/Pricing"
+    },
+    "publisher": {
+      "$ref": "#/$defs/Publisher"
+    },
+    "repository": {
+      "description": "ソースリポジトリの URL。",
+      "type": "string"
+    },
+    "runtime": {
+      "$ref": "#/$defs/Runtime"
+    },
+    "versions": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/RegistryVersion"
+      }
+    }
+  },
+  "additionalProperties": false,
+  "required": [
+    "id",
+    "name",
+    "publisher",
+    "repository",
+    "apiVersion",
+    "runtime",
+    "license",
+    "pricing",
+    "versions"
+  ],
+  "$defs": {
+    "PluginId": {
+      "description": "Reverse-domain plugin id, e.g. \"com.example.my-plugin\".",
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9-]*(\\.[a-z][a-z0-9-]*)+$"
+    },
+    "Pricing": {
+      "type": "string",
+      "enum": [
+        "free",
+        "paid"
+      ]
+    },
+    "Publisher": {
+      "type": "object",
+      "properties": {
+        "github": {
+          "description": "GitHub のユーザー名または組織名。",
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "name",
+        "github"
+      ]
+    },
+    "RegistryVersion": {
+      "type": "object",
+      "properties": {
+        "sha256": {
+          "description": "配布物の SHA-256（16 進小文字）。",
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "signature": {
+          "description": "配布物の署名。",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "url": {
+          "description": "配布物の URL。",
+          "type": "string"
+        },
+        "version": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "version",
+        "url",
+        "sha256"
+      ]
+    },
+    "Runtime": {
+      "description": "プラグインの実行方式（ADR-0004 の段階に対応）。",
+      "oneOf": [
+        {
+          "description": "v0: YAML 宣言ルール。コアが解釈するのでブラウザ・CLI・CI のどこでも動く。",
+          "type": "string",
+          "const": "rules"
+        },
+        {
+          "description": "v1: ESM を Web Worker で実行する。ブラウザのみ。",
+          "type": "string",
+          "const": "browser"
+        },
+        {
+          "description": "v2: WASM Component。ブラウザ・CLI・サーバで動く。",
+          "type": "string",
+          "const": "wasm-component"
+        }
+      ]
+    }
+  }
+}
