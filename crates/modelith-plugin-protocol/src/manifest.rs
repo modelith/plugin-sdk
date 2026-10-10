@@ -140,35 +140,75 @@ pub struct Command {
 mod tests {
     use super::*;
 
+    const BASE: &str = r#""id":"a.b","name":"x","version":"0.1.0","apiVersion":"1","runtime":"browser","license":"MIT""#;
+
     #[test]
     fn parses_minimal_rules_manifest() {
-        let m: PluginManifest = serde_json::from_str(
-            r#"{
-                "id": "jp.modelith.iso15288-rules",
-                "name": "ISO 15288 フェーズ検査",
-                "version": "0.1.0",
-                "apiVersion": "1",
-                "runtime": "rules",
-                "license": "MIT",
-                "permissions": ["model:read"],
-                "contributes": { "rules": ["rules/phases.yaml"] }
-            }"#,
-        )
-        .unwrap();
-        assert_eq!(m.runtime, Runtime::Rules);
-        assert_eq!(m.permissions, vec![Permission::ModelRead]);
-        assert_eq!(m.contributes.rules, vec!["rules/phases.yaml"]);
+        // Arrange
+        let json = r#"{
+            "id": "jp.modelith.iso15288-rules",
+            "name": "ISO 15288 フェーズ検査",
+            "version": "0.1.0",
+            "apiVersion": "1",
+            "runtime": "rules",
+            "license": "MIT",
+            "permissions": ["model:read"],
+            "contributes": { "rules": ["rules/phases.yaml"] }
+        }"#;
+        // Act
+        let m: PluginManifest = serde_json::from_str(json).unwrap();
+        // Assert
+        assert_eq!(
+            (m.runtime, m.permissions, m.contributes.rules),
+            (
+                Runtime::Rules,
+                vec![Permission::ModelRead],
+                vec!["rules/phases.yaml".to_owned()]
+            )
+        );
     }
 
     #[test]
-    fn rejects_unknown_fields_and_permissions() {
-        let base = r#""id":"a.b","name":"x","version":"0.1.0","apiVersion":"1","runtime":"browser","license":"MIT""#;
-        assert!(
-            serde_json::from_str::<PluginManifest>(&format!("{{{base},\"extra\":1}}")).is_err()
+    fn omitted_optional_fields_default_to_empty() {
+        // Arrange（境界値: 必須フィールドのみ）
+        let json = format!("{{{BASE}}}");
+        // Act
+        let m: PluginManifest = serde_json::from_str(&json).unwrap();
+        // Assert
+        assert_eq!(
+            (m.permissions.len(), m.contributes, m.main),
+            (0, Contributes::default(), None)
         );
-        assert!(
-            serde_json::from_str::<PluginManifest>(&format!("{{{base},\"permissions\":[\"fs\"]}}"))
-                .is_err()
-        );
+    }
+
+    #[test]
+    fn rejects_unknown_field() {
+        // Arrange
+        let json = format!("{{{BASE},\"extra\":1}}");
+        // Act
+        let result = serde_json::from_str::<PluginManifest>(&json);
+        // Assert
+        assert!(result.is_err());
+    }
+
+    #[test]
+    fn rejects_unknown_permission() {
+        // Arrange
+        let json = format!("{{{BASE},\"permissions\":[\"fs\"]}}");
+        // Act
+        let result = serde_json::from_str::<PluginManifest>(&json);
+        // Assert
+        assert!(result.is_err());
+    }
+
+    #[test]
+    fn rejects_missing_required_field() {
+        // Arrange（境界値: 必須フィールドが 1 つ欠ける）
+        let json =
+            r#"{"id":"a.b","name":"x","version":"0.1.0","apiVersion":"1","runtime":"browser"}"#;
+        // Act
+        let result = serde_json::from_str::<PluginManifest>(json);
+        // Assert
+        assert!(result.is_err());
     }
 }
