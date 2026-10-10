@@ -1,53 +1,69 @@
 #!/usr/bin/env bash
 # ハーネスの単一エントリポイント。人間・AI エージェント・CI すべてがこれを実行する。
-#   scripts/check.sh          フルチェック
-#   scripts/check.sh --fast   高速チェック（Stop フック用）
+# テスト原則（.claude/skills/testing-principles/）に従い、静的検査 → 単体 → 結合 → 統合 の順に実行し、
+# 失敗した段階で止まる。
+#   scripts/check.sh          全段階
+#   scripts/check.sh --fast   静的検査（軽量）と単体テストのみ（Stop フック用）
 set -euo pipefail
-
 cd "$(git rev-parse --show-toplevel)"
 
-mode="full"
-[[ "${1:-}" == "--fast" ]] && mode="fast"
+MODE=full
+[[ ${1:-} == --fast ]] && MODE=fast
+BATS=tests/harness/node_modules/.bin/bats
+TS=packages/typescript
 
 step() { printf '\n==> %s\n' "$*"; }
-ts=packages/typescript
 
-step "branch name"
-scripts/check-branch-name.sh
+ensure_dependencies() {
+  [[ -d $TS/node_modules ]] || npm ci --prefix "$TS" --no-audit --no-fund
+  [[ -d tests/harness/node_modules ]] || npm ci --prefix tests/harness --no-audit --no-fund
+  command -v shellcheck >/dev/null || { echo "ERROR: shellcheck が必要です（pip install shellcheck-py など）" >&2; exit 1; }
+}
 
-# 依存物・ビルド成果物が Git 管理下に入っていないか（guard-git.sh と同じパターン）
-step "forbidden files"
-FORBIDDEN='(^|/)node_modules/|^target/|^packages/typescript/(dist|schema)/'
-if tracked="$(git ls-files | grep -E "$FORBIDDEN")"; then
-  echo "ERROR: コミットしてはいけないファイルが Git 管理下にあります:" >&2
-  echo "$tracked" | head -20 >&2
-  exit 1
+stage_static() {
+  step "[static] ブランチ名・禁止ファイル・原則"
+  scripts/check-branch-name.sh
+  scripts/check-forbidden-files.sh
+  scripts/check-principles.sh
+  step "[static] rust: fmt / $([[ $MODE == fast ]] && echo check || echo clippy)"
+  cargo fmt --all -- --check
+  if [[ $MODE == fast ]]; then
+    cargo check --workspace --all-targets --quiet
+  else
+    cargo clippy --workspace --all-targets --all-features -- -D warnings
+  fi
+  step "[static] typescript: typecheck"
+  npm run --prefix "$TS" -s typecheck
+}
+
+stage_unit() {
+  step "[unit] harness"
+  "$BATS" tests/harness/unit
+  step "[unit] rust"
+  cargo test --workspace --lib --bins --quiet
+  step "[unit] typescript"
+  npm run --prefix "$TS" -s test
+}
+
+stage_integration() {
+  step "[integration] harness"
+  "$BATS" tests/harness/integration
+  step "[integration] rust（生成物の最新性・examples の読み込み）"
+  cargo test --workspace --test '*' --quiet
+}
+
+stage_system() {
+  step "[system] harness"
+  "$BATS" tests/harness/system
+  step "[system] typescript: build（npm パッケージとして組み立てる）"
+  npm run --prefix "$TS" -s build
+}
+
+ensure_dependencies
+stage_static
+stage_unit
+if [[ $MODE == full ]]; then
+  stage_integration
+  stage_system
 fi
-
-step "rust: fmt"
-cargo fmt --all -- --check
-
-if [[ "$mode" == "fast" ]]; then
-  step "rust: check"
-  cargo check --workspace --all-targets --quiet
-else
-  step "rust: clippy"
-  cargo clippy --workspace --all-targets --all-features -- -D warnings
-fi
-
-# 生成物（schema/・TS 型）が Rust の型と一致するかもここで検証される
-step "rust: test（生成物の最新性・examples の読み込みを含む）"
-cargo test --workspace --all-features --quiet
-
-step "typescript: typecheck"
-[[ -d $ts/node_modules ]] || npm ci --prefix $ts --no-audit --no-fund
-npm run --prefix $ts -s typecheck
-
-if [[ "$mode" == "full" ]]; then
-  step "typescript: test（JSON Schema で examples を検証）"
-  npm run --prefix $ts -s test
-  step "typescript: build"
-  npm run --prefix $ts -s build
-fi
-
-step "OK ($mode)"
+step "OK ($MODE)"
