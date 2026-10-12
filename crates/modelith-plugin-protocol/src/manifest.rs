@@ -140,7 +140,7 @@ pub struct Command {
 mod tests {
     use super::*;
 
-    const BASE: &str = r#""id":"a.b","name":"x","version":"0.1.0","apiVersion":"1","runtime":"browser","license":"MIT""#;
+    const BASE: &str = r#""id":"a.b","name":"x","version":"0.1.0","apiVersion":"0","runtime":"browser","license":"MIT""#;
 
     #[test]
     fn parses_minimal_rules_manifest() {
@@ -149,7 +149,7 @@ mod tests {
             "id": "jp.modelith.iso15288-rules",
             "name": "ISO 15288 フェーズ検査",
             "version": "0.1.0",
-            "apiVersion": "1",
+            "apiVersion": "0",
             "runtime": "rules",
             "license": "MIT",
             "permissions": ["model:read"],
@@ -205,7 +205,7 @@ mod tests {
     fn rejects_missing_required_field() {
         // Arrange（境界値: 必須フィールドが 1 つ欠ける）
         let json =
-            r#"{"id":"a.b","name":"x","version":"0.1.0","apiVersion":"1","runtime":"browser"}"#;
+            r#"{"id":"a.b","name":"x","version":"0.1.0","apiVersion":"0","runtime":"browser"}"#;
         // Act
         let result = serde_json::from_str::<PluginManifest>(json);
         // Assert

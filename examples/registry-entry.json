@@ -3,7 +3,7 @@
   "name": "FMEA トレース検査",
   "publisher": { "name": "Example Inc.", "github": "example-inc" },
   "repository": "https://github.com/example-inc/modelith-fmea",
-  "apiVersion": "1",
+  "apiVersion": "0",
   "runtime": "rules",
   "license": "MIT",
   "pricing": "free",

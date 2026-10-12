@@ -32,7 +32,8 @@ examples/*.json  ← Rust（serde）と TS（JSON Schema）の両方で検証す
 
 ## 互換性ルール（最重要）
 
-- `API_VERSION`（= マニフェストの `apiVersion`）は plugin-sdk のメジャーバージョンと一致させる。
+- `API_VERSION`（= マニフェストの `apiVersion`）は plugin-sdk の MAJOR と一致させる。1.0.0 未満の間は `"0"` で、互換性を約束しない。
+- バージョンの規則全体は [modelith のバージョン規則](https://github.com/modelith/modelith/blob/dev/docs/reference/versioning.md) に従う。
 - 既存プラグインを壊す変更（必須フィールドの追加、フィールド・列挙値の削除や改名、意味の変更）は**破壊的変更**。
   コミットに `!` を付け、本体側に ADR を追加してから行う。
 - 互換を保つ追加は、任意フィールド（`Option` / `#[serde(default)]`）として入れる。
