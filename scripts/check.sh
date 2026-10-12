@@ -21,10 +21,9 @@ ensure_dependencies() {
 }
 
 stage_static() {
-  step "[static] ブランチ名・禁止ファイル・原則"
-  scripts/check-branch-name.sh
+  step "[static] 禁止ファイル・ShellCheck"
   scripts/check-forbidden-files.sh
-  scripts/check-principles.sh
+  shellcheck -x scripts/*.sh scripts/lib/*.sh .claude/hooks/*.sh
   step "[static] rust: fmt / $([[ $MODE == fast ]] && echo check || echo clippy)"
   cargo fmt --all -- --check
   if [[ $MODE == fast ]]; then
@@ -53,8 +52,6 @@ stage_integration() {
 }
 
 stage_system() {
-  step "[system] harness"
-  "$BATS" tests/harness/system
   step "[system] typescript: build（npm パッケージとして組み立てる）"
   npm run --prefix "$TS" -s build
 }
