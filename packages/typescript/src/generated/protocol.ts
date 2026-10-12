@@ -1,7 +1,7 @@
 // 生成物。編集しないこと。定義元: crates/modelith-plugin-protocol
 // 再生成: UPDATE_GENERATED=1 cargo test -p modelith-plugin-protocol --test generated
 
-export const API_VERSION = "1";
+export const API_VERSION = "0";
 export const PLUGIN_ID_PATTERN = "^[a-z][a-z0-9-]*(\\.[a-z][a-z0-9-]*)+$";
 
 export type PluginId = string;

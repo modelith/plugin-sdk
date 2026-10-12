@@ -17,8 +17,22 @@ pub use manifest::{
 };
 pub use registry::{Pricing, Publisher, RegistryEntry, RegistryVersion};
 
-/// このクレートが定義するプラグイン API のメジャーバージョン。
+/// このクレートが定義するプラグイン API のバージョン（SDK の MAJOR と同じ値）。
 /// マニフェストの `apiVersion` はこの値と一致しなければならない。
-pub const API_VERSION: &str = "1";
+/// SDK が 1.0.0 未満の間は `"0"` で、互換性を約束しない（modelith の docs/reference/versioning.md）。
+pub const API_VERSION: &str = "0";
 
 pub mod generate;
+
+#[cfg(test)]
+mod tests {
+    #[test]
+    fn api_version_matches_crate_major() {
+        // Arrange（バージョン規則: apiVersion = SDK の MAJOR）
+        let major = env!("CARGO_PKG_VERSION_MAJOR");
+        // Act
+        let api_version = super::API_VERSION;
+        // Assert
+        assert_eq!(api_version, major);
+    }
+}
