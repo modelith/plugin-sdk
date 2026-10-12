@@ -14,7 +14,7 @@ crates/modelith-plugin-protocol/src/*.rs   ← 唯一の定義元（Rust の型�
 examples/*.json  ← Rust（serde）と TS（JSON Schema）の両方で検証する共通サンプル
 ```
 
-- 生成物は手で編集しない（フックでブロックされる）。型を変えたら再生成してコミットする。
+- 生成物は手で編集しない（古いと結合テストが失敗する）。型を変えたら再生成してコミットする。
 - 型を変えたら `examples/` も更新し、新しいフィールドの使用例を入れる。
 - ID パターンなど両言語で使う定数も Rust 側に置き、生成物として TS へ渡す。
 
@@ -27,8 +27,8 @@ examples/*.json  ← Rust（serde）と TS（JSON Schema）の両方で検証す
 | [programming-principles](.claude/skills/programming-principles/SKILL.md) | SOLID、テスト可能なコード（判断と I/O の分離・依存の注入）、YAGNI、可読性 |
 | [testing-principles](.claude/skills/testing-principles/SKILL.md) | ISTQB の 7 原則、単体 → 結合 → 統合、同値分割・境界値・正常系／異常系、AAA パターン |
 
-機械で検査できる項目（テストの有無・AAA・関数とファイルの長さ・ShellCheck・clippy）は `scripts/check-principles.sh` と clippy が強制する。
-機械で検査できない項目（O/L/I/D・YAGNI・テスト設計）は、各スキルのチェックリストで自己レビューし PR テンプレートで答える。
+スキルは「書くときの指針」であり、ハーネスで強制するのは fmt・clippy・ShellCheck・テストの成否だけ（本体の ADR-0008）。
+同じ種類の違反が繰り返されたら、その時点で機械的な検査を足す。
 
 ## 互換性ルール（最重要）
 
@@ -64,22 +64,18 @@ examples/*.json  ← Rust（serde）と TS（JSON Schema）の両方で検証す
 | 高速チェック | `scripts/check.sh --fast` |
 | 生成物の再生成 | `UPDATE_GENERATED=1 cargo test -p modelith-plugin-protocol --test generated` |
 | TS のテスト | `npm test --prefix packages/typescript` |
-| ハーネスのテスト | `tests/harness/node_modules/.bin/bats tests/harness/{unit,integration,system}` |
-| 原則の検査 | `scripts/check-principles.sh` |
-| 共有ファイルの照合 | `scripts/check-shared-sync.sh [ref]`（modelith と同一か） |
+| ハーネスのテスト | `tests/harness/node_modules/.bin/bats tests/harness/{unit,integration}` |
 
 ## ハーネス（自動で動くもの）
 
 構成: 判断は `scripts/lib/policy.sh`（純粋関数）、入出力は `scripts/lib/hook-io.sh`、リポジトリ固有の値は `scripts/harness.conf`。
-`scripts/lib/shared-files.txt` に挙げたファイルは modelith と同一に保つ（固有の値を書かない。変更は両リポジトリに同じ内容で入れる）。
+`scripts/lib/`・フック・`check-pr-*.sh`・`check-forbidden-files.sh` は modelith と同じ内容を保つ（固有の値は書かない）。
 
 | タイミング | フック | 役割 |
 | --- | --- | --- |
 | セッション開始 | `session-start.sh` | rustfmt/clippy・npm 依存・shellcheck を用意し、現在ブランチと作業ルールを通知 |
 | Bash 実行前 | `guard-git.sh` | main / dev への push・その上での commit・force-push・一括ステージ・禁止ファイルのコミットをブロック |
 | マージ操作前 | `guard-merge.sh` | dev 向けの Squash は許可、main 向けは毎回ユーザーの承認を求め、方式の誤りは拒否 |
-| ファイル編集前 | `protect-files.sh` | 生成物・lock ファイルの直接編集をブロック |
-| ファイル編集後 | `format-rust.sh` | 編集した `.rs` を rustfmt で整形 |
 | 停止前 | `verify-on-stop.sh` | 変更があれば `check.sh --fast` を実行し、失敗なら差し戻し |
 
 フックにブロックされたら、回避策を探さず、メッセージに従って手順を正すこと。
