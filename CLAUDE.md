@@ -49,7 +49,7 @@ examples/*.json  ← Rust（serde）と TS（JSON Schema）の両方で検証す
 
 本体と同じ戦略（[branching-strategy.md](https://github.com/modelith/modelith/blob/dev/docs/development/branching-strategy.md)、ADR-0007）に従う。
 
-- 作業ブランチは `dev` から作り、PR は `dev` に向ける（GitHub の既定ブランチは `main` なので、PR 作成時に base を `dev` と明示する。向け先の誤りは CI の `scripts/check-pr-base.sh` が検出する）。`main` / `dev` へ直接 commit / push しない。ブランチ名は `<type>/<topic>`
+- 作業ブランチは `dev` から作り、PR は `dev` に向ける（GitHub の既定ブランチは `dev`。PR 作成時も base を `dev` と明示する。向け先の誤りは CI の `scripts/check-pr-base.sh` が検出する）。`main` / `dev` へ直接 commit / push しない。ブランチ名は `<type>/<topic>`
 - **トピック → `dev` は許可なしでマージしてよい。** 条件は CI（`check` / `conventions`）がグリーンで、未解決のレビューコメントがないこと。方式は Squash
 - **`main` へのマージ（PR のマージ、auto-merge の有効化を含む）はメンテナの明示的な許可を得てから行う。**
   `dev` → `main` はマイルストーン（リリース）ごと、方式はマージコミット。許可は PR ごとに取り、過去の許可や他の PR への許可を流用しない
