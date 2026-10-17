@@ -1,0 +1,197 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Modelith rule set",
+  "description": "検査ルールのファイル。",
+  "type": "object",
+  "properties": {
+    "rules": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/Rule"
+      }
+    }
+  },
+  "additionalProperties": false,
+  "required": [
+    "rules"
+  ],
+  "$defs": {
+    "CountRange": {
+      "description": "数の範囲（両端を含む）。省いた側は制限しない。",
+      "type": "object",
+      "properties": {
+        "max": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "format": "uint32",
+          "minimum": 0
+        },
+        "min": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "format": "uint32",
+          "minimum": 0
+        }
+      },
+      "additionalProperties": false
+    },
+    "DiagnosticSeverity": {
+      "type": "string",
+      "enum": [
+        "error",
+        "warning",
+        "information",
+        "hint"
+      ]
+    },
+    "ElementMatch": {
+      "description": "ルールを当てる要素の条件（すべてを満たす要素に当てる）。",
+      "type": "object",
+      "properties": {
+        "kind": {
+          "description": "要素の種類（例: `requirement def`）。並びはいずれかに当たればよい。",
+          "$ref": "#/$defs/OneOrMany"
+        },
+        "name": {
+          "description": "要素名の正規表現。",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "phase": {
+          "description": "工程（`@Phase`）の名前（例: `SystemRequirements`）。",
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "kind"
+      ]
+    },
+    "OneOrMany": {
+      "description": "文字列 1 つか、文字列の並び。",
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      ]
+    },
+    "Requirement": {
+      "description": "当たった要素が満たすべき条件（書いたものすべて）。\n\n語彙は任意フィールドの追加で増やす（互換を保つ）。",
+      "type": "object",
+      "properties": {
+        "incoming": {
+          "description": "この種類の関係（例: `satisfy`）を 1 本以上受ける。並びはいずれかでよい。",
+          "anyOf": [
+            {
+              "$ref": "#/$defs/OneOrMany"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "name": {
+          "description": "要素名がこの正規表現に当たる。",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "not": {
+          "description": "同じ形の条件の否定（満たさないこと）。",
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Requirement"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "outgoing": {
+          "description": "この種類の関係（例: `derivation`）を 1 本以上出す。並びはいずれかでよい。",
+          "anyOf": [
+            {
+              "$ref": "#/$defs/OneOrMany"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "phase": {
+          "description": "`true` なら工程（`@Phase`）を持つ、`false` なら持たない。",
+          "type": [
+            "boolean",
+            "null"
+          ]
+        },
+        "ports": {
+          "description": "ポートの数。",
+          "anyOf": [
+            {
+              "$ref": "#/$defs/CountRange"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "additionalProperties": false
+    },
+    "Rule": {
+      "description": "1 つの検査ルール。`match` に当たる要素ごとに `require` を確かめ、満たさなければ診断を出す。",
+      "type": "object",
+      "properties": {
+        "id": {
+          "description": "プラグインの中で一意な ID。診断の `code` になる。",
+          "$ref": "#/$defs/RuleId"
+        },
+        "match": {
+          "description": "ルールを当てる要素。",
+          "$ref": "#/$defs/ElementMatch"
+        },
+        "message": {
+          "description": "診断のメッセージ。`{name}`（要素名）と `{kind}`（要素の種類）を差し込める。",
+          "type": "string"
+        },
+        "require": {
+          "description": "当たった要素が満たすべき条件。",
+          "$ref": "#/$defs/Requirement"
+        },
+        "severity": {
+          "$ref": "#/$defs/DiagnosticSeverity"
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "severity",
+        "message",
+        "match",
+        "require"
+      ]
+    },
+    "RuleId": {
+      "description": "Rule id unique within the plugin, e.g. \"req-has-satisfier\".",
+      "type": "string",
+      "pattern": "^[a-z0-9][a-z0-9-]*$"
+    }
+  }
+}

@@ -35,6 +35,7 @@ describe("JSON Schema accepts the shared examples", () => {
   const ajv = new Ajv2020.default({ strict: false });
   const manifest = ajv.compile(readJson("schema/plugin-manifest.schema.json"));
   const entry = ajv.compile(readJson("schema/registry-entry.schema.json"));
+  const ruleSet = ajv.compile(readJson("schema/rule-set.schema.json"));
   const manifests = readdirSync(join(root, "examples")).filter((f) => f.startsWith("manifest."));
 
   it.each(manifests)("%s", (file: string) => {
@@ -53,6 +54,29 @@ describe("JSON Schema accepts the shared examples", () => {
     const valid = entry(json);
     // Assert
     expect(valid, JSON.stringify(entry.errors)).toBe(true);
+  });
+
+  it("rule-set.json", () => {
+    // Arrange
+    const json = readJson("examples", "rule-set.json");
+    // Act
+    const valid = ruleSet(json);
+    // Assert
+    expect(valid, JSON.stringify(ruleSet.errors)).toBe(true);
+  });
+
+  it.each([
+    ["an invalid rule id", { id: "Bad" }],
+    ["an unknown key", { extra: 1 }],
+    ["a kind that is neither string nor list", { match: { kind: 1 } }],
+  ])("rule set rejects %s", (_: string, patch: Record<string, unknown>) => {
+    // Arrange（異常系: Rust 側の rules.rs のテストと同じ同値クラス）
+    const base = readJson("examples", "rule-set.json");
+    const json = { rules: [{ ...base.rules[0], ...patch }] };
+    // Act
+    const valid = ruleSet(json);
+    // Assert
+    expect(valid).toBe(false);
   });
 
   it("rejects an invalid plugin id", () => {
