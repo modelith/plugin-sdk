@@ -16,6 +16,7 @@ pub fn files() -> Vec<(&'static str, String)> {
             "schema/registry-entry.schema.json",
             json(schema_for!(RegistryEntry)),
         ),
+        ("schema/rule-set.schema.json", json(schema_for!(RuleSet))),
         (
             "packages/typescript/src/generated/protocol.ts",
             typescript(),
@@ -51,6 +52,13 @@ fn typescript() -> String {
         Pricing::decl(&cfg),
         RegistryVersion::decl(&cfg),
         RegistryEntry::decl(&cfg),
+        RuleId::decl(&cfg),
+        OneOrMany::decl(&cfg),
+        CountRange::decl(&cfg),
+        Requirement::decl(&cfg),
+        ElementMatch::decl(&cfg),
+        Rule::decl(&cfg),
+        RuleSet::decl(&cfg),
     ];
     let mut out = String::from(
         "// 生成物。編集しないこと。定義元: crates/modelith-plugin-protocol\n\
@@ -58,7 +66,8 @@ fn typescript() -> String {
     );
     out.push_str(&format!(
         "export const API_VERSION = \"{API_VERSION}\";\n\
-         export const PLUGIN_ID_PATTERN = {PLUGIN_ID_PATTERN:?};\n\n"
+         export const PLUGIN_ID_PATTERN = {PLUGIN_ID_PATTERN:?};\n\
+         export const RULE_ID_PATTERN = {RULE_ID_PATTERN:?};\n\n"
     ));
     for d in decls {
         out.push_str("export ");

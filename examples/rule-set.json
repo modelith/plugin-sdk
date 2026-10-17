@@ -1,0 +1,27 @@
+{
+  "rules": [
+    {
+      "id": "req-has-satisfier",
+      "severity": "warning",
+      "message": "要求「{name}」を満たす部品がありません",
+      "match": {
+        "kind": "requirement def",
+        "phase": "SystemRequirements",
+        "name": "^[A-Z]"
+      },
+      "require": { "incoming": "satisfy" }
+    },
+    {
+      "id": "part-ports-in-range",
+      "severity": "information",
+      "message": "{kind}「{name}」のポートは 1〜8 個にしてください",
+      "match": { "kind": ["part def", "part"] },
+      "require": {
+        "name": "^[A-Z]\\w*$",
+        "phase": true,
+        "ports": { "min": 1, "max": 8 },
+        "not": { "outgoing": ["derivation", "refinement"] }
+      }
+    }
+  ]
+}

@@ -3,6 +3,7 @@
 
 export const API_VERSION = "0";
 export const PLUGIN_ID_PATTERN = "^[a-z][a-z0-9-]*(\\.[a-z][a-z0-9-]*)+$";
+export const RULE_ID_PATTERN = "^[a-z0-9][a-z0-9-]*$";
 
 export type PluginId = string;
 
@@ -113,3 +114,69 @@ repository: string, apiVersion: string, runtime: Runtime,
  * SPDX ライセンス式。
  */
 license: string, pricing: Pricing, versions: Array<RegistryVersion>, };
+
+export type RuleId = string;
+
+export type OneOrMany = string | Array<string>;
+
+export type CountRange = { min?: number, max?: number, };
+
+export type Requirement = { 
+/**
+ * この種類の関係（例: `satisfy`）を 1 本以上受ける。並びはいずれかでよい。
+ */
+incoming?: OneOrMany, 
+/**
+ * この種類の関係（例: `derivation`）を 1 本以上出す。並びはいずれかでよい。
+ */
+outgoing?: OneOrMany, 
+/**
+ * 要素名がこの正規表現に当たる。
+ */
+name?: string, 
+/**
+ * `true` なら工程（`@Phase`）を持つ、`false` なら持たない。
+ */
+phase?: boolean, 
+/**
+ * ポートの数。
+ */
+ports?: CountRange, 
+/**
+ * 同じ形の条件の否定（満たさないこと）。
+ */
+not?: Requirement, };
+
+export type ElementMatch = { 
+/**
+ * 要素の種類（例: `requirement def`）。並びはいずれかに当たればよい。
+ */
+kind: OneOrMany, 
+/**
+ * 工程（`@Phase`）の名前（例: `SystemRequirements`）。
+ */
+phase?: string, 
+/**
+ * 要素名の正規表現。
+ */
+name?: string, };
+
+export type Rule = { 
+/**
+ * プラグインの中で一意な ID。診断の `code` になる。
+ */
+id: RuleId, severity: DiagnosticSeverity, 
+/**
+ * 診断のメッセージ。`{name}`（要素名）と `{kind}`（要素の種類）を差し込める。
+ */
+message: string, 
+/**
+ * ルールを当てる要素。
+ */
+match: ElementMatch, 
+/**
+ * 当たった要素が満たすべき条件。
+ */
+require: Requirement, };
+
+export type RuleSet = { rules: Array<Rule>, };

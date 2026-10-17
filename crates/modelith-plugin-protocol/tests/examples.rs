@@ -5,7 +5,7 @@
 
 use std::path::Path;
 
-use modelith_plugin_protocol::{PluginManifest, RegistryEntry};
+use modelith_plugin_protocol::{PluginManifest, RegistryEntry, RuleSet};
 
 fn read(name: &str) -> String {
     let path = Path::new(env!("CARGO_MANIFEST_DIR"))
@@ -37,6 +37,16 @@ fn registry_entry_parses() {
     let json = read("registry-entry.json");
     // Act
     let result = serde_json::from_str::<RegistryEntry>(&json);
+    // Assert
+    assert!(result.is_ok(), "{result:?}");
+}
+
+#[test]
+fn rule_set_parses() {
+    // Arrange
+    let json = read("rule-set.json");
+    // Act
+    let result = serde_json::from_str::<RuleSet>(&json);
     // Assert
     assert!(result.is_ok(), "{result:?}");
 }
