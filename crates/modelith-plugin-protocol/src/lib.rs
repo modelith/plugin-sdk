@@ -27,6 +27,7 @@ pub use rules::{
 /// SDK が 1.0.0 未満の間は `"0"` で、互換性を約束しない（modelith の docs/reference/versioning.md）。
 pub const API_VERSION: &str = "0";
 
+#[cfg(feature = "codegen")]
 pub mod generate;
 
 #[cfg(test)]

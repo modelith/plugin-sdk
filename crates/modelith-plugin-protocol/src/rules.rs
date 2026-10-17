@@ -4,12 +4,9 @@
 //! `min <= max` などの意味の検査は modelith-core が位置つきで報告する。
 //! 未知のキーは黙って捨てず、誤りとして返す（すべての構造体が `deny_unknown_fields`）。
 
-use std::borrow::Cow;
 use std::fmt;
 
-use schemars::{JsonSchema, Schema, SchemaGenerator, json_schema};
 use serde::{Deserialize, Serialize};
-use ts_rs::TS;
 
 use crate::DiagnosticSeverity;
 
@@ -17,15 +14,17 @@ use crate::DiagnosticSeverity;
 pub const RULE_ID_PATTERN: &str = r"^[a-z0-9][a-z0-9-]*$";
 
 /// 検査ルールのファイル。
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema, TS)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[cfg_attr(feature = "codegen", derive(schemars::JsonSchema, ts_rs::TS))]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
-#[schemars(title = "Modelith rule set")]
+#[cfg_attr(feature = "codegen", schemars(title = "Modelith rule set"))]
 pub struct RuleSet {
     pub rules: Vec<Rule>,
 }
 
 /// 1 つの検査ルール。`match` に当たる要素ごとに `require` を確かめ、満たさなければ診断を出す。
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema, TS)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[cfg_attr(feature = "codegen", derive(schemars::JsonSchema, ts_rs::TS))]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 pub struct Rule {
     /// プラグインの中で一意な ID。診断の `code` になる。
@@ -41,67 +40,71 @@ pub struct Rule {
 }
 
 /// ルールを当てる要素の条件（すべてを満たす要素に当てる）。
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema, TS)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[cfg_attr(feature = "codegen", derive(schemars::JsonSchema, ts_rs::TS))]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 pub struct ElementMatch {
     /// 要素の種類（例: `requirement def`）。並びはいずれかに当たればよい。
     pub kind: OneOrMany,
     /// 工程（`@Phase`）の名前（例: `SystemRequirements`）。
     #[serde(default, skip_serializing_if = "Option::is_none")]
-    #[ts(optional)]
+    #[cfg_attr(feature = "codegen", ts(optional))]
     pub phase: Option<String>,
     /// 要素名の正規表現。
     #[serde(default, skip_serializing_if = "Option::is_none")]
-    #[ts(optional)]
+    #[cfg_attr(feature = "codegen", ts(optional))]
     pub name: Option<String>,
 }
 
 /// 当たった要素が満たすべき条件（書いたものすべて）。
 ///
 /// 語彙は任意フィールドの追加で増やす（互換を保つ）。
-#[derive(Debug, Clone, Default, PartialEq, Eq, Serialize, Deserialize, JsonSchema, TS)]
+#[derive(Debug, Clone, Default, PartialEq, Eq, Serialize, Deserialize)]
+#[cfg_attr(feature = "codegen", derive(schemars::JsonSchema, ts_rs::TS))]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 pub struct Requirement {
     /// この種類の関係（例: `satisfy`）を 1 本以上受ける。並びはいずれかでよい。
     #[serde(default, skip_serializing_if = "Option::is_none")]
-    #[ts(optional)]
+    #[cfg_attr(feature = "codegen", ts(optional))]
     pub incoming: Option<OneOrMany>,
     /// この種類の関係（例: `derivation`）を 1 本以上出す。並びはいずれかでよい。
     #[serde(default, skip_serializing_if = "Option::is_none")]
-    #[ts(optional)]
+    #[cfg_attr(feature = "codegen", ts(optional))]
     pub outgoing: Option<OneOrMany>,
     /// 要素名がこの正規表現に当たる。
     #[serde(default, skip_serializing_if = "Option::is_none")]
-    #[ts(optional)]
+    #[cfg_attr(feature = "codegen", ts(optional))]
     pub name: Option<String>,
     /// `true` なら工程（`@Phase`）を持つ、`false` なら持たない。
     #[serde(default, skip_serializing_if = "Option::is_none")]
-    #[ts(optional)]
+    #[cfg_attr(feature = "codegen", ts(optional))]
     pub phase: Option<bool>,
     /// ポートの数。
     #[serde(default, skip_serializing_if = "Option::is_none")]
-    #[ts(optional)]
+    #[cfg_attr(feature = "codegen", ts(optional))]
     pub ports: Option<CountRange>,
     /// 同じ形の条件の否定（満たさないこと）。
     #[serde(default, skip_serializing_if = "Option::is_none")]
-    #[ts(optional)]
+    #[cfg_attr(feature = "codegen", ts(optional))]
     pub not: Option<Box<Requirement>>,
 }
 
 /// 数の範囲（両端を含む）。省いた側は制限しない。
-#[derive(Debug, Clone, Copy, Default, PartialEq, Eq, Serialize, Deserialize, JsonSchema, TS)]
+#[derive(Debug, Clone, Copy, Default, PartialEq, Eq, Serialize, Deserialize)]
+#[cfg_attr(feature = "codegen", derive(schemars::JsonSchema, ts_rs::TS))]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 pub struct CountRange {
     #[serde(default, skip_serializing_if = "Option::is_none")]
-    #[ts(optional)]
+    #[cfg_attr(feature = "codegen", ts(optional))]
     pub min: Option<u32>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
-    #[ts(optional)]
+    #[cfg_attr(feature = "codegen", ts(optional))]
     pub max: Option<u32>,
 }
 
 /// 文字列 1 つか、文字列の並び。
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema, TS)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[cfg_attr(feature = "codegen", derive(schemars::JsonSchema, ts_rs::TS))]
 #[serde(untagged)]
 pub enum OneOrMany {
     One(String),
@@ -119,8 +122,9 @@ impl OneOrMany {
 }
 
 /// ルール ID（例: `req-has-satisfier`）。
-#[derive(Debug, Clone, PartialEq, Eq, Hash, PartialOrd, Ord, Serialize, TS)]
-#[ts(type = "string")]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, PartialOrd, Ord, Serialize)]
+#[cfg_attr(feature = "codegen", derive(ts_rs::TS))]
+#[cfg_attr(feature = "codegen", ts(type = "string"))]
 pub struct RuleId(String);
 
 impl<'de> Deserialize<'de> for RuleId {
@@ -188,13 +192,14 @@ impl fmt::Display for RuleId {
     }
 }
 
-impl JsonSchema for RuleId {
-    fn schema_name() -> Cow<'static, str> {
+#[cfg(feature = "codegen")]
+impl schemars::JsonSchema for RuleId {
+    fn schema_name() -> std::borrow::Cow<'static, str> {
         "RuleId".into()
     }
 
-    fn json_schema(_: &mut SchemaGenerator) -> Schema {
-        json_schema!({
+    fn json_schema(_: &mut schemars::SchemaGenerator) -> schemars::Schema {
+        schemars::json_schema!({
             "type": "string",
             "pattern": RULE_ID_PATTERN,
             "description": "Rule id unique within the plugin, e.g. \"req-has-satisfier\"."
@@ -272,7 +277,7 @@ mod tests {
     fn parses_every_require_field_and_nested_not() {
         // Arrange
         let json = rule_with(
-            r#"{"outgoing":["derivation","refinement"],"name":"^[A-Z]\\w*$","phase":true,
+            r#"{"outgoing":["derivation","flow"],"name":"^[A-Z]\\w*$","phase":true,
                 "ports":{"min":1,"max":8},"not":{"incoming":"satisfy"}}"#,
         );
         // Act
@@ -284,7 +289,7 @@ mod tests {
                 incoming: None,
                 outgoing: Some(OneOrMany::Many(vec![
                     "derivation".to_owned(),
-                    "refinement".to_owned()
+                    "flow".to_owned()
                 ])),
                 name: Some(r"^[A-Z]\w*$".to_owned()),
                 phase: Some(true),

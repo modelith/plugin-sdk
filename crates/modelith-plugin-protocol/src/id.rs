@@ -1,16 +1,14 @@
-use std::borrow::Cow;
 use std::fmt;
 
-use schemars::{JsonSchema, Schema, SchemaGenerator, json_schema};
 use serde::{Deserialize, Serialize};
-use ts_rs::TS;
 
 /// プラグイン ID の正規表現（逆ドメイン形式、英小文字・数字・`-`、2 区切り以上）。
 pub const PLUGIN_ID_PATTERN: &str = r"^[a-z][a-z0-9-]*(\.[a-z][a-z0-9-]*)+$";
 
 /// 逆ドメイン形式のプラグイン ID（例: `jp.modelith.iso15288-rules`）。
-#[derive(Debug, Clone, PartialEq, Eq, Hash, PartialOrd, Ord, Serialize, TS)]
-#[ts(type = "string")]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, PartialOrd, Ord, Serialize)]
+#[cfg_attr(feature = "codegen", derive(ts_rs::TS))]
+#[cfg_attr(feature = "codegen", ts(type = "string"))]
 pub struct PluginId(String);
 
 impl<'de> Deserialize<'de> for PluginId {
@@ -86,13 +84,14 @@ impl fmt::Display for PluginId {
     }
 }
 
-impl JsonSchema for PluginId {
-    fn schema_name() -> Cow<'static, str> {
+#[cfg(feature = "codegen")]
+impl schemars::JsonSchema for PluginId {
+    fn schema_name() -> std::borrow::Cow<'static, str> {
         "PluginId".into()
     }
 
-    fn json_schema(_: &mut SchemaGenerator) -> Schema {
-        json_schema!({
+    fn json_schema(_: &mut schemars::SchemaGenerator) -> schemars::Schema {
+        schemars::json_schema!({
             "type": "string",
             "pattern": PLUGIN_ID_PATTERN,
             "description": "Reverse-domain plugin id, e.g. \"com.example.my-plugin\"."

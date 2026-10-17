@@ -31,6 +31,8 @@ stage_static() {
   else
     cargo clippy --workspace --all-targets --all-features -- -D warnings
   fi
+  # 利用側（modelith の wasm など）は codegen なしで使う。テストは dev-dependencies で codegen を有効にするので、ライブラリ単体で確かめる。
+  cargo check -p modelith-plugin-protocol --lib --quiet
   step "[static] typescript: typecheck"
   npm run --prefix "$TS" -s typecheck
 }

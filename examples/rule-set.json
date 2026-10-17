@@ -20,7 +20,7 @@
         "name": "^[A-Z]\\w*$",
         "phase": true,
         "ports": { "min": 1, "max": 8 },
-        "not": { "outgoing": ["derivation", "refinement"] }
+        "not": { "outgoing": ["derivation", "flow"] }
       }
     }
   ]
