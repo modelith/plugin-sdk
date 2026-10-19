@@ -2,6 +2,7 @@
 // 型は crates/modelith-plugin-protocol から生成している（src/generated/ は編集しない）。
 
 export * from "./generated/protocol.js";
+export { connectToHost, type HostConnection, type MessageEndpoint } from "./channel.js";
 
 import { PLUGIN_ID_PATTERN } from "./generated/protocol.js";
 

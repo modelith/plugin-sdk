@@ -18,6 +18,14 @@ pub fn files() -> Vec<(&'static str, String)> {
         ),
         ("schema/rule-set.schema.json", json(schema_for!(RuleSet))),
         (
+            "schema/host-message.schema.json",
+            json(schema_for!(HostMessage)),
+        ),
+        (
+            "schema/plugin-message.schema.json",
+            json(schema_for!(PluginMessage)),
+        ),
+        (
             "packages/typescript/src/generated/protocol.ts",
             typescript(),
         ),
@@ -59,6 +67,15 @@ fn typescript() -> String {
         ElementMatch::decl(&cfg),
         Rule::decl(&cfg),
         RuleSet::decl(&cfg),
+        PortDirection::decl(&cfg),
+        ModelPort::decl(&cfg),
+        ModelElement::decl(&cfg),
+        RelationKind::decl(&cfg),
+        ModelRelation::decl(&cfg),
+        ModelSnapshot::decl(&cfg),
+        NotifyLevel::decl(&cfg),
+        HostMessage::decl(&cfg),
+        PluginMessage::decl(&cfg),
     ];
     let mut out = String::from(
         "// 生成物。編集しないこと。定義元: crates/modelith-plugin-protocol\n\

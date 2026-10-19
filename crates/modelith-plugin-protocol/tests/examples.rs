@@ -5,7 +5,11 @@
 
 use std::path::Path;
 
-use modelith_plugin_protocol::{PluginManifest, RegistryEntry, RuleSet};
+use modelith_plugin_protocol::{
+    HostMessage, PluginManifest, PluginMessage, RegistryEntry, RuleSet,
+};
+use serde::{Serialize, de::DeserializeOwned};
+use serde_json::Value;
 
 fn read(name: &str) -> String {
     let path = Path::new(env!("CARGO_MANIFEST_DIR"))
@@ -49,4 +53,42 @@ fn rule_set_parses() {
     let result = serde_json::from_str::<RuleSet>(&json);
     // Assert
     assert!(result.is_ok(), "{result:?}");
+}
+
+/// 各メッセージが型で読め、書き戻すと元の JSON と同じになること（JSON で往復できる）。
+fn round_trip_errors<T: DeserializeOwned + Serialize>(name: &str) -> Vec<String> {
+    let messages: Vec<Value> = serde_json::from_str(&read(name)).unwrap();
+    messages
+        .into_iter()
+        .enumerate()
+        .filter_map(|(i, original)| {
+            let back = serde_json::from_value::<T>(original.clone())
+                .and_then(|m| serde_json::to_value(&m));
+            match back {
+                Ok(v) if v == original => None,
+                Ok(v) => Some(format!("{name}[{i}]: round trip changed it to {v}")),
+                Err(e) => Some(format!("{name}[{i}]: {e}")),
+            }
+        })
+        .collect()
+}
+
+#[test]
+fn host_messages_round_trip() {
+    // Arrange
+    let name = "messages.host.json";
+    // Act
+    let errors = round_trip_errors::<HostMessage>(name);
+    // Assert
+    assert!(errors.is_empty(), "{errors:?}");
+}
+
+#[test]
+fn plugin_messages_round_trip() {
+    // Arrange
+    let name = "messages.plugin.json";
+    // Act
+    let errors = round_trip_errors::<PluginMessage>(name);
+    // Assert
+    assert!(errors.is_empty(), "{errors:?}");
 }
