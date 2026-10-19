@@ -1,0 +1,349 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Modelith host message",
+  "description": "ホストからプラグインへのメッセージ。",
+  "oneOf": [
+    {
+      "description": "プラグインを起動する。プラグインは `ready` を返す。",
+      "type": "object",
+      "properties": {
+        "apiVersion": {
+          "type": "string"
+        },
+        "pluginId": {
+          "$ref": "#/$defs/PluginId"
+        },
+        "settings": {
+          "description": "プロジェクトの設定（`modelith.json` の `plugins.<id>.settings`）。形はプラグインが決める。無ければ省く。"
+        },
+        "type": {
+          "type": "string",
+          "const": "activate"
+        }
+      },
+      "required": [
+        "type",
+        "apiVersion",
+        "pluginId"
+      ]
+    },
+    {
+      "description": "モデルのテキストが変わった。",
+      "type": "object",
+      "properties": {
+        "model": {
+          "description": "解析結果。マニフェストで `model:read` を宣言したときだけ送る。",
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ModelSnapshot"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "text": {
+          "type": "string"
+        },
+        "type": {
+          "type": "string",
+          "const": "didChange"
+        },
+        "version": {
+          "description": "テキストの版。診断や変更案は、どの版に対するものかをこの値で示す。",
+          "type": "integer",
+          "format": "uint32",
+          "minimum": 0
+        }
+      },
+      "required": [
+        "type",
+        "version",
+        "text"
+      ]
+    },
+    {
+      "description": "マニフェストの `contributes.commands` のコマンドを実行する。",
+      "type": "object",
+      "properties": {
+        "command": {
+          "type": "string"
+        },
+        "requestId": {
+          "type": "integer",
+          "format": "uint32",
+          "minimum": 0
+        },
+        "type": {
+          "type": "string",
+          "const": "runCommand"
+        }
+      },
+      "required": [
+        "type",
+        "requestId",
+        "command"
+      ]
+    },
+    {
+      "description": "`contributes.importers` の取り込みを実行する。",
+      "type": "object",
+      "properties": {
+        "base64": {
+          "description": "ファイルの中身（base64）。",
+          "type": "string"
+        },
+        "fileName": {
+          "type": "string"
+        },
+        "importer": {
+          "type": "string"
+        },
+        "requestId": {
+          "type": "integer",
+          "format": "uint32",
+          "minimum": 0
+        },
+        "type": {
+          "type": "string",
+          "const": "import"
+        }
+      },
+      "required": [
+        "type",
+        "requestId",
+        "importer",
+        "fileName",
+        "base64"
+      ]
+    },
+    {
+      "description": "`contributes.exporters` の書き出しを実行する。",
+      "type": "object",
+      "properties": {
+        "exporter": {
+          "type": "string"
+        },
+        "requestId": {
+          "type": "integer",
+          "format": "uint32",
+          "minimum": 0
+        },
+        "type": {
+          "type": "string",
+          "const": "export"
+        },
+        "view": {
+          "description": "表示中の図の名前。無ければモデル全体。",
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      },
+      "required": [
+        "type",
+        "requestId",
+        "exporter"
+      ]
+    },
+    {
+      "description": "`storageGet` / `storageSet` への応答。",
+      "type": "object",
+      "properties": {
+        "requestId": {
+          "type": "integer",
+          "format": "uint32",
+          "minimum": 0
+        },
+        "type": {
+          "type": "string",
+          "const": "storageResult"
+        },
+        "value": {
+          "description": "`storageGet` で読んだ値。無ければ省く。"
+        }
+      },
+      "required": [
+        "type",
+        "requestId"
+      ]
+    }
+  ],
+  "$defs": {
+    "ModelElement": {
+      "type": "object",
+      "properties": {
+        "key": {
+          "description": "要素を指す鍵。`ModelRelation` の `from` / `to` はこの値を使う。",
+          "type": "string"
+        },
+        "kind": {
+          "description": "要素の種類（例: `part def`）。検査ルールの `match.kind` と同じ言葉。",
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "phase": {
+          "description": "工程（`@Phase`）の名前。",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "ports": {
+          "type": "array",
+          "default": [],
+          "items": {
+            "$ref": "#/$defs/ModelPort"
+          }
+        },
+        "range": {
+          "description": "テキスト上の位置。",
+          "$ref": "#/$defs/Range"
+        }
+      },
+      "required": [
+        "key",
+        "name",
+        "kind",
+        "range"
+      ]
+    },
+    "ModelPort": {
+      "type": "object",
+      "properties": {
+        "direction": {
+          "description": "向き。書いていなければ省く。",
+          "anyOf": [
+            {
+              "$ref": "#/$defs/PortDirection"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "name": {
+          "type": "string"
+        },
+        "type": {
+          "description": "ポートの型の名前。型を書いていなければ省く。",
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      },
+      "required": [
+        "name"
+      ]
+    },
+    "ModelRelation": {
+      "type": "object",
+      "properties": {
+        "from": {
+          "description": "出る側の要素の `key`。",
+          "type": "string"
+        },
+        "id": {
+          "type": "string"
+        },
+        "kind": {
+          "$ref": "#/$defs/RelationKind"
+        },
+        "to": {
+          "description": "受ける側の要素の `key`。",
+          "type": "string"
+        }
+      },
+      "required": [
+        "id",
+        "kind",
+        "from",
+        "to"
+      ]
+    },
+    "ModelSnapshot": {
+      "description": "`didChange` で送る解析結果。\n\n`apiVersion` が `\"0\"` の間は互換性を約束しない（0.2.0 で属性値・接続を足す予定）。",
+      "type": "object",
+      "properties": {
+        "elements": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/ModelElement"
+          }
+        },
+        "relations": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/ModelRelation"
+          }
+        }
+      },
+      "required": [
+        "elements",
+        "relations"
+      ]
+    },
+    "PluginId": {
+      "description": "Reverse-domain plugin id, e.g. \"com.example.my-plugin\".",
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9-]*(\\.[a-z][a-z0-9-]*)+$"
+    },
+    "PortDirection": {
+      "type": "string",
+      "enum": [
+        "in",
+        "out",
+        "inout"
+      ]
+    },
+    "Position": {
+      "type": "object",
+      "properties": {
+        "character": {
+          "type": "integer",
+          "format": "uint32",
+          "minimum": 0
+        },
+        "line": {
+          "type": "integer",
+          "format": "uint32",
+          "minimum": 0
+        }
+      },
+      "required": [
+        "line",
+        "character"
+      ]
+    },
+    "Range": {
+      "type": "object",
+      "properties": {
+        "end": {
+          "$ref": "#/$defs/Position"
+        },
+        "start": {
+          "$ref": "#/$defs/Position"
+        }
+      },
+      "required": [
+        "start",
+        "end"
+      ]
+    },
+    "RelationKind": {
+      "description": "関係の種類。検査ルールの `incoming` / `outgoing` と同じ言葉。",
+      "type": "string",
+      "enum": [
+        "satisfy",
+        "verify",
+        "frame",
+        "derivation",
+        "flow"
+      ]
+    }
+  }
+}

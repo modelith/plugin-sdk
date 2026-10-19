@@ -180,3 +180,85 @@ match: ElementMatch,
 require: Requirement, };
 
 export type RuleSet = { rules: Array<Rule>, };
+
+export type PortDirection = "in" | "out" | "inout";
+
+export type ModelPort = { name: string, 
+/**
+ * ポートの型の名前。型を書いていなければ省く。
+ */
+type?: string, 
+/**
+ * 向き。書いていなければ省く。
+ */
+direction?: PortDirection, };
+
+export type ModelElement = { 
+/**
+ * 要素を指す鍵。`ModelRelation` の `from` / `to` はこの値を使う。
+ */
+key: string, name: string, 
+/**
+ * 要素の種類（例: `part def`）。検査ルールの `match.kind` と同じ言葉。
+ */
+kind: string, 
+/**
+ * 工程（`@Phase`）の名前。
+ */
+phase?: string, ports: Array<ModelPort>, 
+/**
+ * テキスト上の位置。
+ */
+range: Range, };
+
+export type RelationKind = "satisfy" | "verify" | "frame" | "derivation" | "flow";
+
+export type ModelRelation = { id: string, kind: RelationKind, 
+/**
+ * 出る側の要素の `key`。
+ */
+from: string, 
+/**
+ * 受ける側の要素の `key`。
+ */
+to: string, };
+
+export type ModelSnapshot = { elements: Array<ModelElement>, relations: Array<ModelRelation>, };
+
+export type NotifyLevel = "info" | "warning" | "error";
+
+export type HostMessage = { "type": "activate", apiVersion: string, pluginId: PluginId, 
+/**
+ * プロジェクトの設定（`modelith.json` の `plugins.<id>.settings`）。形はプラグインが決める。無ければ省く。
+ */
+settings?: unknown, } | { "type": "didChange", 
+/**
+ * テキストの版。診断や変更案は、どの版に対するものかをこの値で示す。
+ */
+version: number, text: string, 
+/**
+ * 解析結果。マニフェストで `model:read` を宣言したときだけ送る。
+ */
+model?: ModelSnapshot, } | { "type": "runCommand", requestId: number, command: string, } | { "type": "import", requestId: number, importer: string, fileName: string, 
+/**
+ * ファイルの中身（base64）。
+ */
+base64: string, } | { "type": "export", requestId: number, exporter: string, 
+/**
+ * 表示中の図の名前。無ければモデル全体。
+ */
+view?: string, } | { "type": "storageResult", requestId: number, 
+/**
+ * `storageGet` で読んだ値。無ければ省く。
+ */
+value?: unknown, };
+
+export type PluginMessage = { "type": "ready" } | { "type": "diagnostics", version: number, items: Array<Diagnostic>, } | { "type": "proposeEdits", version: number, edits: Array<TextEdit>, 
+/**
+ * 「元に戻す」に出す名前。
+ */
+label?: string, } | { "type": "commandDone", requestId: number, } | { "type": "imported", requestId: number, fileName: string, text: string, } | { "type": "exported", requestId: number, fileName: string, mediaType: string, 
+/**
+ * ファイルの中身（base64）。
+ */
+base64: string, } | { "type": "failed", requestId: number, message: string, } | { "type": "storageGet", requestId: number, key: string, } | { "type": "storageSet", requestId: number, key: string, value: unknown, } | { "type": "notify", level: NotifyLevel, message: string, };

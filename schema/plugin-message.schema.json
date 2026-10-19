@@ -1,0 +1,352 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Modelith plugin message",
+  "description": "プラグインからホストへのメッセージ。",
+  "oneOf": [
+    {
+      "description": "`activate` を受けて準備ができた。",
+      "type": "object",
+      "properties": {
+        "type": {
+          "type": "string",
+          "const": "ready"
+        }
+      },
+      "required": [
+        "type"
+      ]
+    },
+    {
+      "description": "テキストの版 `version` に対する診断。前に送った診断を置き換える。",
+      "type": "object",
+      "properties": {
+        "items": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Diagnostic"
+          }
+        },
+        "type": {
+          "type": "string",
+          "const": "diagnostics"
+        },
+        "version": {
+          "type": "integer",
+          "format": "uint32",
+          "minimum": 0
+        }
+      },
+      "required": [
+        "type",
+        "version",
+        "items"
+      ]
+    },
+    {
+      "description": "テキストの版 `version` に対する変更案。ホストが検証してから適用する。",
+      "type": "object",
+      "properties": {
+        "edits": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/TextEdit"
+          }
+        },
+        "label": {
+          "description": "「元に戻す」に出す名前。",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "type": {
+          "type": "string",
+          "const": "proposeEdits"
+        },
+        "version": {
+          "type": "integer",
+          "format": "uint32",
+          "minimum": 0
+        }
+      },
+      "required": [
+        "type",
+        "version",
+        "edits"
+      ]
+    },
+    {
+      "description": "`runCommand` が終わった。",
+      "type": "object",
+      "properties": {
+        "requestId": {
+          "type": "integer",
+          "format": "uint32",
+          "minimum": 0
+        },
+        "type": {
+          "type": "string",
+          "const": "commandDone"
+        }
+      },
+      "required": [
+        "type",
+        "requestId"
+      ]
+    },
+    {
+      "description": "`import` の結果（SysML v2 のテキスト）。",
+      "type": "object",
+      "properties": {
+        "fileName": {
+          "type": "string"
+        },
+        "requestId": {
+          "type": "integer",
+          "format": "uint32",
+          "minimum": 0
+        },
+        "text": {
+          "type": "string"
+        },
+        "type": {
+          "type": "string",
+          "const": "imported"
+        }
+      },
+      "required": [
+        "type",
+        "requestId",
+        "fileName",
+        "text"
+      ]
+    },
+    {
+      "description": "`export` の結果。",
+      "type": "object",
+      "properties": {
+        "base64": {
+          "description": "ファイルの中身（base64）。",
+          "type": "string"
+        },
+        "fileName": {
+          "type": "string"
+        },
+        "mediaType": {
+          "type": "string"
+        },
+        "requestId": {
+          "type": "integer",
+          "format": "uint32",
+          "minimum": 0
+        },
+        "type": {
+          "type": "string",
+          "const": "exported"
+        }
+      },
+      "required": [
+        "type",
+        "requestId",
+        "fileName",
+        "mediaType",
+        "base64"
+      ]
+    },
+    {
+      "description": "依頼（`request_id`）に応えられなかった。",
+      "type": "object",
+      "properties": {
+        "message": {
+          "type": "string"
+        },
+        "requestId": {
+          "type": "integer",
+          "format": "uint32",
+          "minimum": 0
+        },
+        "type": {
+          "type": "string",
+          "const": "failed"
+        }
+      },
+      "required": [
+        "type",
+        "requestId",
+        "message"
+      ]
+    },
+    {
+      "description": "プラグイン専用のストレージから読む（`storage` 権限が要る）。",
+      "type": "object",
+      "properties": {
+        "key": {
+          "type": "string"
+        },
+        "requestId": {
+          "type": "integer",
+          "format": "uint32",
+          "minimum": 0
+        },
+        "type": {
+          "type": "string",
+          "const": "storageGet"
+        }
+      },
+      "required": [
+        "type",
+        "requestId",
+        "key"
+      ]
+    },
+    {
+      "description": "プラグイン専用のストレージに書く（`storage` 権限が要る）。",
+      "type": "object",
+      "properties": {
+        "key": {
+          "type": "string"
+        },
+        "requestId": {
+          "type": "integer",
+          "format": "uint32",
+          "minimum": 0
+        },
+        "type": {
+          "type": "string",
+          "const": "storageSet"
+        },
+        "value": true
+      },
+      "required": [
+        "type",
+        "requestId",
+        "key",
+        "value"
+      ]
+    },
+    {
+      "description": "利用者への通知。",
+      "type": "object",
+      "properties": {
+        "level": {
+          "$ref": "#/$defs/NotifyLevel"
+        },
+        "message": {
+          "type": "string"
+        },
+        "type": {
+          "type": "string",
+          "const": "notify"
+        }
+      },
+      "required": [
+        "type",
+        "level",
+        "message"
+      ]
+    }
+  ],
+  "$defs": {
+    "Diagnostic": {
+      "description": "検査ルールなどが報告する診断。",
+      "type": "object",
+      "properties": {
+        "code": {
+          "description": "ルール ID など。",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "message": {
+          "type": "string"
+        },
+        "range": {
+          "$ref": "#/$defs/Range"
+        },
+        "severity": {
+          "$ref": "#/$defs/DiagnosticSeverity"
+        },
+        "source": {
+          "description": "報告元のプラグイン ID など。",
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      },
+      "required": [
+        "range",
+        "severity",
+        "message"
+      ]
+    },
+    "DiagnosticSeverity": {
+      "type": "string",
+      "enum": [
+        "error",
+        "warning",
+        "information",
+        "hint"
+      ]
+    },
+    "NotifyLevel": {
+      "type": "string",
+      "enum": [
+        "info",
+        "warning",
+        "error"
+      ]
+    },
+    "Position": {
+      "type": "object",
+      "properties": {
+        "character": {
+          "type": "integer",
+          "format": "uint32",
+          "minimum": 0
+        },
+        "line": {
+          "type": "integer",
+          "format": "uint32",
+          "minimum": 0
+        }
+      },
+      "required": [
+        "line",
+        "character"
+      ]
+    },
+    "Range": {
+      "type": "object",
+      "properties": {
+        "end": {
+          "$ref": "#/$defs/Position"
+        },
+        "start": {
+          "$ref": "#/$defs/Position"
+        }
+      },
+      "required": [
+        "start",
+        "end"
+      ]
+    },
+    "TextEdit": {
+      "description": "プラグインが返す変更案。ホストが検証してから適用する。",
+      "type": "object",
+      "properties": {
+        "newText": {
+          "type": "string"
+        },
+        "range": {
+          "$ref": "#/$defs/Range"
+        }
+      },
+      "required": [
+        "range",
+        "newText"
+      ]
+    }
+  }
+}

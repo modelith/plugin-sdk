@@ -36,6 +36,8 @@ describe("JSON Schema accepts the shared examples", () => {
   const manifest = ajv.compile(readJson("schema/plugin-manifest.schema.json"));
   const entry = ajv.compile(readJson("schema/registry-entry.schema.json"));
   const ruleSet = ajv.compile(readJson("schema/rule-set.schema.json"));
+  const hostMessage = ajv.compile(readJson("schema/host-message.schema.json"));
+  const pluginMessage = ajv.compile(readJson("schema/plugin-message.schema.json"));
   const manifests = readdirSync(join(root, "examples")).filter((f) => f.startsWith("manifest."));
 
   it.each(manifests)("%s", (file: string) => {
@@ -75,6 +77,40 @@ describe("JSON Schema accepts the shared examples", () => {
     const json = { rules: [{ ...base.rules[0], ...patch }] };
     // Act
     const valid = ruleSet(json);
+    // Assert
+    expect(valid).toBe(false);
+  });
+
+  const messageCases = (file: string) =>
+    (readJson("examples", file) as { type: string }[]).map((m, i) => [`${file}[${i}] ${m.type}`, m] as const);
+
+  it.each(messageCases("messages.host.json"))("%s", (_: string, message: unknown) => {
+    // Arrange
+    const json = message;
+    // Act
+    const valid = hostMessage(json);
+    // Assert
+    expect(valid, JSON.stringify(hostMessage.errors)).toBe(true);
+  });
+
+  it.each(messageCases("messages.plugin.json"))("%s", (_: string, message: unknown) => {
+    // Arrange
+    const json = message;
+    // Act
+    const valid = pluginMessage(json);
+    // Assert
+    expect(valid, JSON.stringify(pluginMessage.errors)).toBe(true);
+  });
+
+  it.each([
+    ["an unknown type", { type: "shutdown" }],
+    ["a missing required field", { type: "failed", requestId: 1 }],
+    ["an unknown notify level", { type: "notify", level: "debug", message: "m" }],
+  ])("plugin message rejects %s", (_: string, json: unknown) => {
+    // Arrange（異常系: Rust 側の message.rs のテストと同じ同値クラス）
+    const message = json;
+    // Act
+    const valid = pluginMessage(message);
     // Assert
     expect(valid).toBe(false);
   });

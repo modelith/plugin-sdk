@@ -1,0 +1,38 @@
+[
+  {
+    "type": "activate",
+    "apiVersion": "0",
+    "pluginId": "com.example.fmea-check",
+    "settings": { "severityThreshold": 7 }
+  },
+  {
+    "type": "didChange",
+    "version": 3,
+    "text": "part def Motor { port power : Power; }\nrequirement def Torque;\n",
+    "model": {
+      "elements": [
+        {
+          "key": "Motor",
+          "name": "Motor",
+          "kind": "part def",
+          "phase": "SystemArchitecture",
+          "ports": [{ "name": "power", "type": "Power", "direction": "in" }],
+          "range": { "start": { "line": 0, "character": 0 }, "end": { "line": 0, "character": 38 } }
+        },
+        {
+          "key": "Torque",
+          "name": "Torque",
+          "kind": "requirement def",
+          "ports": [],
+          "range": { "start": { "line": 1, "character": 0 }, "end": { "line": 1, "character": 23 } }
+        }
+      ],
+      "relations": [{ "id": "r1", "kind": "satisfy", "from": "Motor", "to": "Torque" }]
+    }
+  },
+  { "type": "runCommand", "requestId": 1, "command": "fmea.open" },
+  { "type": "import", "requestId": 2, "importer": "reqif", "fileName": "reqs.reqif", "base64": "PFJFUS1JRi8+" },
+  { "type": "export", "requestId": 3, "exporter": "drawio", "view": "Overview" },
+  { "type": "storageResult", "requestId": 4, "value": { "lastRun": "2026-10-19" } },
+  { "type": "storageResult", "requestId": 5 }
+]

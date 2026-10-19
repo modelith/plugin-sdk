@@ -7,6 +7,7 @@
 mod edit;
 mod id;
 mod manifest;
+mod message;
 mod registry;
 mod rules;
 
@@ -15,6 +16,10 @@ pub use id::{PLUGIN_ID_PATTERN, PluginId, PluginIdError};
 pub use manifest::{
     Command, Contributes, Exporter, Importer, PaletteItem, Permission, PluginManifest, Runtime,
     View,
+};
+pub use message::{
+    HostMessage, ModelElement, ModelPort, ModelRelation, ModelSnapshot, NotifyLevel, PluginMessage,
+    PortDirection, RelationKind,
 };
 pub use registry::{Pricing, Publisher, RegistryEntry, RegistryVersion};
 pub use rules::{
