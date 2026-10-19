@@ -5,6 +5,7 @@
   "apiVersion": "0",
   "runtime": "browser",
   "description": "ReqIF の要求を requirement def として取り込む",
+  "author": "Example Inc.",
   "license": "Apache-2.0",
   "main": "dist/index.js",
   "permissions": ["model:read", "edits:propose"],

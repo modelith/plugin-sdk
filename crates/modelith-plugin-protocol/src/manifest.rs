@@ -26,9 +26,16 @@ pub struct PluginManifest {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     #[cfg_attr(feature = "codegen", ts(optional))]
     pub description: Option<String>,
+    /// 作者の名前。権限を許可する画面などに出す。
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    #[cfg_attr(feature = "codegen", ts(optional))]
+    pub author: Option<String>,
     /// SPDX ライセンス式。
     pub license: String,
-    /// エントリポイント（`browser`: ESM ファイル、`wasm-component`: .wasm ファイル）。`rules` では不要。
+    /// エントリポイント。`rules` では不要。
+    /// - `browser`: 1 つのファイルにまとめた従来型のスクリプト（例: ESM を IIFE にまとめたもの）。
+    ///   モジュール形式（`import` / `export` を含むもの）は Chromium のサンドボックス化した iframe の中で動かせない（ADR-0018 §3.1）。
+    /// - `wasm-component`: .wasm ファイル。
     #[serde(default, skip_serializing_if = "Option::is_none")]
     #[cfg_attr(feature = "codegen", ts(optional))]
     pub main: Option<String>,
@@ -48,7 +55,7 @@ pub struct PluginManifest {
 pub enum Runtime {
     /// v0: YAML 宣言ルール。コアが解釈するのでブラウザ・CLI・CI のどこでも動く。
     Rules,
-    /// v1: ESM を Web Worker で実行する。ブラウザのみ。
+    /// v1: 1 つのファイルにまとめたスクリプトを、サンドボックス化した iframe の中の Web Worker で実行する。ブラウザのみ。
     Browser,
     /// v2: WASM Component。ブラウザ・CLI・サーバで動く。
     WasmComponent,
@@ -187,6 +194,26 @@ mod tests {
             (m.permissions.len(), m.contributes, m.main),
             (0, Contributes::default(), None)
         );
+    }
+
+    #[test]
+    fn parses_author() {
+        // Arrange
+        let json = format!("{{{BASE},\"author\":\"Example Inc.\"}}");
+        // Act
+        let m: PluginManifest = serde_json::from_str(&json).unwrap();
+        // Assert
+        assert_eq!(m.author.as_deref(), Some("Example Inc."));
+    }
+
+    #[test]
+    fn omitted_author_is_none() {
+        // Arrange（境界値: 作者を書かない既存のマニフェスト）
+        let json = format!("{{{BASE}}}");
+        // Act
+        let m: PluginManifest = serde_json::from_str(&json).unwrap();
+        // Assert
+        assert_eq!(m.author, None);
     }
 
     #[test]

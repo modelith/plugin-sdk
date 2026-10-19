@@ -9,6 +9,13 @@
       "type": "string",
       "pattern": "^\\d+$"
     },
+    "author": {
+      "description": "作者の名前。権限を許可する画面などに出す。",
+      "type": [
+        "string",
+        "null"
+      ]
+    },
     "contributes": {
       "$ref": "#/$defs/Contributes",
       "default": {}
@@ -27,7 +34,7 @@
       "type": "string"
     },
     "main": {
-      "description": "エントリポイント（`browser`: ESM ファイル、`wasm-component`: .wasm ファイル）。`rules` では不要。",
+      "description": "エントリポイント。`rules` では不要。\n- `browser`: 1 つのファイルにまとめた従来型のスクリプト（例: ESM を IIFE にまとめたもの）。\n  モジュール形式（`import` / `export` を含むもの）は Chromium のサンドボックス化した iframe の中で動かせない（ADR-0018 §3.1）。\n- `wasm-component`: .wasm ファイル。",
       "type": [
         "string",
         "null"
@@ -229,7 +236,7 @@
           "const": "rules"
         },
         {
-          "description": "v1: ESM を Web Worker で実行する。ブラウザのみ。",
+          "description": "v1: 1 つのファイルにまとめたスクリプトを、サンドボックス化した iframe の中の Web Worker で実行する。ブラウザのみ。",
           "type": "string",
           "const": "browser"
         },
