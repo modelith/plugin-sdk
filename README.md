@@ -20,7 +20,7 @@ APIs and type definitions for building [Modelith](https://github.com/modelith/mo
 
 ## 依存の追加・更新
 
-lockfile をコミットし、npm の依存は `npm ci` で入れます。インストール時のスクリプトは `.npmrc`（`ignore-scripts=true`）で止め、公開から 7 日たっていない版は入れません（急ぎのセキュリティ修正は除く）。
+lockfile をコミットし、npm の依存は `npm ci` で入れます。インストール時のスクリプトは `.npmrc`（`ignore-scripts=true`）で止め、公開から 7 日たっていない版は入れません（急ぎのセキュリティ修正は除く）。rustup 自身も最新に保ちます（CI はツールチェーンを入れる前に `rustup self update` し、1.29.2 以上を確かめる）。
 決まりの全体は Modelith の [依存の追加・更新](https://github.com/modelith/modelith/blob/dev/CONTRIBUTING.md#依存の追加更新) に従います。
 
 ## License
