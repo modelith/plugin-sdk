@@ -32,6 +32,26 @@ jobs:
         env:
           PR_TITLE: ${{ github.event.pull_request.title }}
 
+  # 依存の既知の脆弱性（RustSec・npm advisories。npm は配布物に入る依存だけを見る）と、npm の配布物の署名・来歴（provenance）
+  audit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: rustsec/audit-check@69366f33c96575abad1ee0dba8212993eecbe998 # v2.0.0
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version-file: .nvmrc
+          check-latest: true  # 毎回その時点の最新の 22.x を使う（セキュリティリリースをすぐ取り込む）
+      # 署名の確かめには、入れた依存が要る（インストール時スクリプトは動かさない）
+      - run: npm ci --prefix packages/typescript --ignore-scripts --no-audit --no-fund
+      - run: npm ci --prefix tests/harness --ignore-scripts --no-audit --no-fund
+      - run: npm audit signatures --prefix packages/typescript
+      - run: npm audit signatures --prefix tests/harness
+      - run: npm audit --prefix packages/typescript --omit=dev --audit-level=moderate
+      - run: npm audit --prefix tests/harness --omit=dev --audit-level=moderate
+
   check:
     runs-on: ubuntu-latest
     steps:
