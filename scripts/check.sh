@@ -15,9 +15,9 @@ TS=packages/typescript
 step() { printf '\n==> %s\n' "$*"; }
 
 ensure_dependencies() {
-  [[ -d $TS/node_modules ]] || npm ci --prefix "$TS" --no-audit --no-fund
-  [[ -d tests/harness/node_modules ]] || npm ci --prefix tests/harness --no-audit --no-fund
-  command -v shellcheck >/dev/null || { echo "ERROR: shellcheck が必要です（pip install shellcheck-py など）" >&2; exit 1; }
+  [[ -d $TS/node_modules ]] || npm ci --prefix "$TS" --ignore-scripts --no-audit --no-fund
+  [[ -d tests/harness/node_modules ]] || npm ci --prefix tests/harness --ignore-scripts --no-audit --no-fund
+  command -v shellcheck >/dev/null || { echo "ERROR: shellcheck が必要です（apt-get install shellcheck・brew install shellcheck など）" >&2; exit 1; }
 }
 
 stage_static() {
