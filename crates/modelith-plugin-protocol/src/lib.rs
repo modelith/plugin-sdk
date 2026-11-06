@@ -14,8 +14,8 @@ mod rules;
 pub use edit::{Diagnostic, DiagnosticSeverity, Position, Range, TextEdit};
 pub use id::{PLUGIN_ID_PATTERN, PluginId, PluginIdError};
 pub use manifest::{
-    Command, Contributes, Exporter, Importer, PaletteItem, Permission, PluginManifest, Runtime,
-    View,
+    Command, Contributes, Engines, Exporter, Importer, PaletteItem, Permission, PluginManifest,
+    Runtime, View,
 };
 pub use message::{
     HostMessage, ModelElement, ModelPort, ModelRelation, ModelSnapshot, NotifyLevel, PluginMessage,

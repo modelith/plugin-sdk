@@ -55,6 +55,7 @@ fn typescript() -> String {
         PaletteItem::decl(&cfg),
         Command::decl(&cfg),
         Contributes::decl(&cfg),
+        Engines::decl(&cfg),
         PluginManifest::decl(&cfg),
         Publisher::decl(&cfg),
         Pricing::decl(&cfg),

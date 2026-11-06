@@ -26,6 +26,17 @@
         "null"
       ]
     },
+    "engines": {
+      "description": "動く本体の版の範囲。書かなければ、どの版の本体でも動かす。",
+      "anyOf": [
+        {
+          "$ref": "#/$defs/Engines"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
     "id": {
       "$ref": "#/$defs/PluginId"
     },
@@ -130,6 +141,21 @@
         }
       },
       "additionalProperties": false
+    },
+    "Engines": {
+      "description": "プラグインが動く本体の版の範囲（本体の ADR-0023 §5）。\n\n本体の公開の系列（安定版・リリース候補版・プレビュー版）が同時に動くので、新しい本体の機能に頼るプラグインは、\n動く版の範囲をここに書く。範囲の外の本体は、プラグインを動かさずに利用者に知らせる。",
+      "type": "object",
+      "properties": {
+        "modelith": {
+          "description": "Modelith の版の範囲。比べる記号と版をカンマで区切って並べる（Cargo の版の指定と同じ書き方。例: `\">=0.1.0, <0.3.0\"`・`\"^0.2\"`）。\n本体は、自分の版からプレリリースの印（`-beta.1` など）を外して比べる（`0.2.0-beta.1` の本体は `0.2.0` として扱う）。",
+          "type": "string",
+          "pattern": "^\\s*(=|>=?|<=?|~|\\^)?\\d+(\\.\\d+){0,2}(\\s*,\\s*(=|>=?|<=?|~|\\^)?\\d+(\\.\\d+){0,2})*\\s*$"
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "modelith"
+      ]
     },
     "Exporter": {
       "type": "object",
