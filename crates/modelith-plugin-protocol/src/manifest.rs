@@ -32,6 +32,10 @@ pub struct PluginManifest {
     pub author: Option<String>,
     /// SPDX ライセンス式。
     pub license: String,
+    /// 動く本体の版の範囲。書かなければ、どの版の本体でも動かす。
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    #[cfg_attr(feature = "codegen", ts(optional))]
+    pub engines: Option<Engines>,
     /// エントリポイント。`rules` では不要。
     /// - `browser`: 1 つのファイルにまとめた従来型のスクリプト（例: ESM を IIFE にまとめたもの）。
     ///   モジュール形式（`import` / `export` を含むもの）は Chromium のサンドボックス化した iframe の中で動かせない（ADR-0018 §3.1）。
@@ -46,6 +50,25 @@ pub struct PluginManifest {
     #[serde(default)]
     #[cfg_attr(feature = "codegen", ts(as = "Option<Contributes>", optional))]
     pub contributes: Contributes,
+}
+
+/// プラグインが動く本体の版の範囲（本体の ADR-0023 §5）。
+///
+/// 本体の公開の系列（安定版・リリース候補版・プレビュー版）が同時に動くので、新しい本体の機能に頼るプラグインは、
+/// 動く版の範囲をここに書く。範囲の外の本体は、プラグインを動かさずに利用者に知らせる。
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[cfg_attr(feature = "codegen", derive(schemars::JsonSchema, ts_rs::TS))]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
+pub struct Engines {
+    /// Modelith の版の範囲。比べる記号と版をカンマで区切って並べる（Cargo の版の指定と同じ書き方。例: `">=0.1.0, <0.3.0"`・`"^0.2"`）。
+    /// 本体は、自分の版からプレリリースの印（`-beta.1` など）を外して比べる（`0.2.0-beta.1` の本体は `0.2.0` として扱う）。
+    #[cfg_attr(
+        feature = "codegen",
+        schemars(regex(
+            pattern = r"^\s*(=|>=?|<=?|~|\^)?\d+(\.\d+){0,2}(\s*,\s*(=|>=?|<=?|~|\^)?\d+(\.\d+){0,2})*\s*$"
+        ))
+    )]
+    pub modelith: String,
 }
 
 /// プラグインの実行方式（ADR-0004 の段階に対応）。
@@ -214,6 +237,39 @@ mod tests {
         let m: PluginManifest = serde_json::from_str(&json).unwrap();
         // Assert
         assert_eq!(m.author, None);
+    }
+
+    #[test]
+    fn parses_engines_range() {
+        // Arrange
+        let json = format!("{{{BASE},\"engines\":{{\"modelith\":\">=0.1.0, <0.3.0\"}}}}");
+        // Act
+        let m: PluginManifest = serde_json::from_str(&json).unwrap();
+        // Assert
+        assert_eq!(
+            m.engines.map(|e| e.modelith).as_deref(),
+            Some(">=0.1.0, <0.3.0")
+        );
+    }
+
+    #[test]
+    fn omitted_engines_is_none() {
+        // Arrange（境界値: 範囲を書かない既存のマニフェストは、どの版の本体でも動かす）
+        let json = format!("{{{BASE}}}");
+        // Act
+        let m: PluginManifest = serde_json::from_str(&json).unwrap();
+        // Assert
+        assert_eq!(m.engines, None);
+    }
+
+    #[test]
+    fn rejects_engines_without_modelith_or_with_unknown_host() {
+        // Arrange（異常系: 本体の名前が無い・知らない本体の名前）
+        let missing = format!("{{{BASE},\"engines\":{{}}}}");
+        let unknown = format!("{{{BASE},\"engines\":{{\"modelith\":\"^0.2\",\"cli\":\"^1\"}}}}");
+        // Act / Assert
+        assert!(serde_json::from_str::<PluginManifest>(&missing).is_err());
+        assert!(serde_json::from_str::<PluginManifest>(&unknown).is_err());
     }
 
     #[test]

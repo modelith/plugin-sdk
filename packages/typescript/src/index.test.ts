@@ -115,6 +115,24 @@ describe("JSON Schema accepts the shared examples", () => {
     expect(valid).toBe(false);
   });
 
+  it.each([">=0.1.0, <0.3.0", "^0.2", "0.1.0", "<1"])("accepts the host version range %s", (range: string) => {
+    // Arrange（正常系: 比べる記号と版をカンマで区切った範囲）
+    const json = { ...readJson("examples", "manifest.rules.json"), engines: { modelith: range } };
+    // Act
+    const valid = manifest(json);
+    // Assert
+    expect(valid, JSON.stringify(manifest.errors)).toBe(true);
+  });
+
+  it.each(["", "latest", ">=0.1.0 <0.3.0", "0.1.0.1"])("rejects the host version range %j", (range: string) => {
+    // Arrange（異常系: 空・名前・カンマの無い並び・4 つ目の数）
+    const json = { ...readJson("examples", "manifest.rules.json"), engines: { modelith: range } };
+    // Act
+    const valid = manifest(json);
+    // Assert
+    expect(valid).toBe(false);
+  });
+
   it("rejects an invalid plugin id", () => {
     // Arrange（異常系: スキーマのパターンに反する id）
     const json = { ...readJson("examples", "manifest.rules.json"), id: "Bad" };
