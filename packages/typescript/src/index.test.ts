@@ -115,8 +115,8 @@ describe("JSON Schema accepts the shared examples", () => {
     expect(valid).toBe(false);
   });
 
-  it.each([">=0.1.0, <0.3.0", "^0.2", "0.1.0", "<1"])("accepts the host version range %s", (range: string) => {
-    // Arrange（正常系: 比べる記号と版をカンマで区切った範囲）
+  it.each([">=0.1.0, <0.3.0", "^0.2", "0.1.0", "<1", "*", "0.2.x", "1.X", "0.2.*", ">=0.2.0-beta.1, <0.3.0", "^0.1.0+build.5", ">= 0.2.0"])("accepts the host version range %s", (range: string) => {
+    // Arrange（正常系: 比べる記号と版をカンマで区切った範囲。Cargo と同じく *・桁の x・プレリリースの版も書ける）
     const json = { ...readJson("examples", "manifest.rules.json"), engines: { modelith: range } };
     // Act
     const valid = manifest(json);
@@ -124,8 +124,8 @@ describe("JSON Schema accepts the shared examples", () => {
     expect(valid, JSON.stringify(manifest.errors)).toBe(true);
   });
 
-  it.each(["", "latest", ">=0.1.0 <0.3.0", "0.1.0.1"])("rejects the host version range %j", (range: string) => {
-    // Arrange（異常系: 空・名前・カンマの無い並び・4 つ目の数）
+  it.each(["", "latest", ">=0.1.0 <0.3.0", "0.1.0.1", "x", "1.y", ">=0.1.0,"])("rejects the host version range %j", (range: string) => {
+    // Arrange（異常系: 空・名前・カンマの無い並び・4 つ目の数・数の無い x・x でない文字の桁・空の組）
     const json = { ...readJson("examples", "manifest.rules.json"), engines: { modelith: range } };
     // Act
     const valid = manifest(json);
