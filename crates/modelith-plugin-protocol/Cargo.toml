@@ -2,6 +2,9 @@
 name = "modelith-plugin-protocol"
 description = "Contract between Modelith and its plugins: manifest, registry entry, rule set, edit and message types"
 version = "0.1.0"
+readme = "README.md"
+keywords = ["modelith", "sysml", "plugin", "json-schema"]
+categories = ["development-tools", "encoding"]
 edition.workspace = true
 license.workspace = true
 repository.workspace = true
