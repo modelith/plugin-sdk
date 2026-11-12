@@ -42,6 +42,8 @@ stage_unit() {
   "$BATS" tests/harness/unit
   step "[unit] rust"
   cargo test --workspace --lib --bins --quiet
+  # README の例（crate の doc に取り込んでいる）が古くならないよう、doctest も走らせる
+  cargo test --workspace --doc --quiet
   step "[unit] typescript"
   npm run --prefix "$TS" -s test
 }

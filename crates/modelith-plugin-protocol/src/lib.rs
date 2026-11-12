@@ -1,8 +1,10 @@
-//! Modelith とプラグインの契約。
-//!
-//! ここで定義した Rust の型が唯一の定義元であり、JSON Schema（`schema/`）と
-//! TypeScript の型（`packages/typescript/src/generated/`）はここから生成する。
-//! Modelith 本体（ホスト側）とレジストリの CI もこの型・スキーマに依存する。
+#![doc = include_str!("../README.md")]
+
+// Modelith とプラグインの契約。
+// ここで定義した Rust の型が唯一の定義元であり、JSON Schema（`schema/`）と
+// TypeScript の型（`packages/typescript/src/generated/`）はここから生成する。
+// Modelith 本体（ホスト側）とレジストリの CI もこの型・スキーマに依存する。
+// クレートの説明は README.md に書き、crates.io・docs.rs・GitHub で同じものを見せる（README の例は doctest で検証する）。
 
 mod edit;
 mod id;
