@@ -91,6 +91,16 @@ rules:
 - `req-has-satisfier`：どの `requirement def` も、`satisfy` の関係を 1 本以上受けていること。
 - `part-has-ports`：どの `part def`・`part` も、ポートを 1 つ以上持つこと。
 
+Node.js があれば、Modelith で開く前にプラグインのフォルダを検査できます。
+`@modelith/plugin-sdk` の `modelith-plugin validate` が、マニフェストとルールのファイルの誤り（キーの綴りの誤りなど）を知らせます。
+
+```sh
+npx -p @modelith/plugin-sdk modelith-plugin validate kettle/.modelith/plugins/com.example.kettle-checks
+```
+
+npm に公開されるまでは、[browser プラグインの手引き](browser-plugin.ja.md#1-プロジェクトを用意する) のとおりに組み立て、
+代わりに `node plugin-sdk/packages/typescript/dist/bin.js validate …` を実行します。
+
 ## 3. Modelith で結果を見る
 
 1. Chrome か Edge で <https://modelith.github.io/modelith/> を開き、`kettle` フォルダを開きます。

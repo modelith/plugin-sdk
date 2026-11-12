@@ -39,6 +39,19 @@ const stop = host.onMessage((message) => {
 Bundle the plugin into a single classic script (for example `esbuild --bundle --format=iife`).
 Chromium cannot run a module script inside the sandboxed iframe that hosts the worker.
 
+## Check a plugin before adding it
+
+`modelith-plugin validate` checks a plugin folder: the manifest and rule files against the JSON Schemas,
+`apiVersion`, the files that `main` and `contributes.rules` point to, duplicate ids, and whether a browser plugin's `main`
+is still an ES module that needs bundling.
+
+```sh
+npx modelith-plugin validate path/to/my-plugin
+```
+
+It prints one line per problem and exits with 1 if there is an error, so it also works in CI.
+What a rule means for a model (element kinds, regular expressions) is checked by Modelith itself, with `modelith check`.
+
 ## Types
 
 Everything in the contract is exported as a type:

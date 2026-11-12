@@ -188,6 +188,14 @@ npx esbuild src/main.ts --bundle --format=iife --target=es2022 --outfile=main.js
 
 `tsc` only checks types (`noEmit`); esbuild writes `main.js`.
 
+Check the folder before adding it to Modelith. The SDK comes with a command for that:
+
+```sh
+npx modelith-plugin validate
+```
+
+It reports mistakes in the manifest, a missing `main.js`, or a `main.js` that still uses `import` and needs bundling.
+
 ## 5. Add it to Modelith
 
 1. Open <https://modelith.github.io/modelith/> in Chrome or Edge and open a folder that has a model with a few `part def`s.

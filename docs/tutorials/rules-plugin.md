@@ -92,6 +92,16 @@ rules:
 - `req-has-satisfier`: every `requirement def` receives at least one `satisfy` relation.
 - `part-has-ports`: every `part def` or `part` has at least one port.
 
+If you have Node.js, you can check the plugin folder before opening Modelith.
+`modelith-plugin validate` from `@modelith/plugin-sdk` reports mistakes in the manifest and the rule files, such as a misspelled key:
+
+```sh
+npx -p @modelith/plugin-sdk modelith-plugin validate kettle/.modelith/plugins/com.example.kettle-checks
+```
+
+Until the package is on npm, build it as described in [the browser plugin tutorial](browser-plugin.md#1-set-up-the-project)
+and run `node plugin-sdk/packages/typescript/dist/bin.js validate …` instead.
+
 ## 3. See the results in Modelith
 
 1. Open <https://modelith.github.io/modelith/> in Chrome or Edge and open the `kettle` folder.
