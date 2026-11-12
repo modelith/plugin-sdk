@@ -54,10 +54,13 @@ policy_merge_decision() {
 policy_push_args() {
   local cmd=$1 line seg heredoc="" nl=$'\n'
   local heredoc_re="<<-?[[:space:]]*[\"']?([A-Za-z_][A-Za-z0-9_]*)"
-  local push_re='^[[:space:](]*git([[:space:]]+-C[[:space:]]+[^[:space:]]+)?[[:space:]]+push(([[:space:]].*)?)$'
+  # 前置き（`env X=1`・`sudo`・`xargs` などとそのオプション）と git のオプション（`-C <dir>`・`-c <k=v>`）を許す。
+  local prefix_re='((env|command|sudo|time|nohup|exec|xargs|-[^[:space:]]*|[A-Za-z_][A-Za-z0-9_]*=[^[:space:]]*)[[:space:]]+)*'
+  local push_re="^[[:space:](]*${prefix_re}git([[:space:]]+-[Cc][[:space:]]+[^[:space:]]+)*[[:space:]]+push(([[:space:]].*)?)\$"
   while IFS= read -r line; do
     if [[ -n $heredoc ]]; then
-      [[ $line == "$heredoc" ]] && heredoc=""
+      # `<<-` の終わりの印は、行頭のタブを付けて書ける
+      [[ ${line#"${line%%[!$'\t']*}"} == "$heredoc" ]] && heredoc=""
       continue
     fi
     [[ $line =~ $heredoc_re ]] && heredoc=${BASH_REMATCH[1]}
@@ -66,7 +69,7 @@ policy_push_args() {
     line=${line//;/$nl}
     line=${line//|/$nl}
     while IFS= read -r seg; do
-      [[ $seg =~ $push_re ]] && printf '%s\n' "${BASH_REMATCH[2]}"
+      [[ $seg =~ $push_re ]] && printf '%s\n' "${BASH_REMATCH[4]}"
     done <<<"$line"
   done <<<"$cmd"
   return 0
