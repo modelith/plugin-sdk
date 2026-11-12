@@ -122,6 +122,27 @@ setup() {
   [ "${results[*]}" = "1 1 1 1 1" ]
 }
 
+@test "policy_git_command: 前置きや git のオプションを付けた push も判定する（異常系）" {
+  # Arrange（環境変数・env・sudo・xargs とそのオプション・command・git -c・<<- のヒアドキュメントの後）
+  local heredoc=$'cat <<-EOF\n\tmain\n\tEOF\ngit push origin main'
+  local cmds=("env X=1 git push origin main" "X=1 git push origin dev" "sudo git push origin dev" "echo | xargs -n1 git push origin main" "command git push --force origin feat/x" "git -c a=b push origin main" "$heredoc")
+  # Act
+  local results=() c
+  for c in "${cmds[@]}"; do results+=("$(status_of policy_git_command "$c" feat/x)"); done
+  # Assert
+  [ "${results[*]}" = "1 1 1 1 1 1 1" ]
+}
+
+@test "policy_git_command: 前置きを付けたトピックブランチへの push は止めない（正常系）" {
+  # Arrange
+  local cmds=("env X=1 git push -u origin feat/x" "git -c a=b push origin feat/x")
+  # Act
+  local results=() c
+  for c in "${cmds[@]}"; do results+=("$(status_of policy_git_command "$c" feat/x)"); done
+  # Assert
+  [ "${results[*]}" = "0 0" ]
+}
+
 @test "policy_git_command: push 以外のコマンドやメッセージに出る保護ブランチ名では止めない（回帰）" {
   # Arrange（同じコマンドの fetch・ヒアドキュメントのコミットメッセージ・-m の文・範囲指定・名前に main を含むブランチ）
   local heredoc=$'git commit -F - <<\'EOF\'\nmerge dev into main\nEOF\ngit push -u origin feat/x'
