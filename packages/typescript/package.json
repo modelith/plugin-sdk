@@ -3,6 +3,16 @@
   "version": "0.1.0",
   "description": "Types and helpers for building Modelith plugins",
   "license": "MIT",
+  "keywords": [
+    "modelith",
+    "sysml",
+    "plugin",
+    "sdk"
+  ],
+  "homepage": "https://github.com/modelith/plugin-sdk/tree/dev/packages/typescript#readme",
+  "bugs": {
+    "url": "https://github.com/modelith/plugin-sdk/issues"
+  },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/modelith/plugin-sdk.git",
@@ -23,6 +33,10 @@
     "dist",
     "schema"
   ],
+  "publishConfig": {
+    "access": "public",
+    "provenance": true
+  },
   "scripts": {
     "build": "tsc -p tsconfig.build.json && rm -rf schema && cp -r ../../schema schema",
     "typecheck": "tsc --noEmit",

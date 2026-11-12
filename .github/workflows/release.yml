@@ -1,0 +1,97 @@
+name: Release
+
+# main に打った vMAJOR.MINOR.PATCH のタグから、crate（crates.io）と npm パッケージを公開する。
+# 公開は release 環境で行う。環境の承認者が承認するまで公開しない（初期設定は CONTRIBUTING.md の「リリース」）。
+on:
+  push:
+    tags: ["v*"]
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0  # タグが main にあるかを確かめるため
+      - name: Tag is on main
+        run: |
+          git merge-base --is-ancestor "$GITHUB_SHA" origin/main ||
+            { echo "ERROR: タグ $GITHUB_REF_NAME は main にありません。dev → main をマージしてから main に打ってください。" >&2; exit 1; }
+      - name: Update rustup itself
+        run: |
+          rustup self update
+          scripts/check-rustup.sh
+      - uses: dtolnay/rust-toolchain@b725eda525362e7cf34af9a7243cac1e3f01a7ec # stable (2026-10)
+        with:
+          toolchain: stable
+          components: rustfmt, clippy
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version-file: .nvmrc
+          check-latest: true
+      - name: Versions match the tag
+        run: scripts/check-versions.sh "$GITHUB_REF_NAME"
+      - run: npm ci --prefix packages/typescript --ignore-scripts --no-audit --no-fund
+      - run: npm ci --prefix tests/harness --ignore-scripts --no-audit --no-fund
+      - name: Harness check（静的検査 → 単体 → 結合 → 統合）
+        run: scripts/check.sh
+
+  publish:
+    needs: verify
+    runs-on: ubuntu-latest
+    environment: release
+    permissions:
+      contents: read
+      id-token: write  # npm の provenance（どのコミットと CI から作ったかの証明）に使う
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Update rustup itself
+        run: |
+          rustup self update
+          scripts/check-rustup.sh
+      - uses: dtolnay/rust-toolchain@b725eda525362e7cf34af9a7243cac1e3f01a7ec # stable (2026-10)
+        with:
+          toolchain: stable
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version-file: .nvmrc
+          check-latest: true
+          registry-url: https://registry.npmjs.org
+      - run: npm ci --prefix packages/typescript --ignore-scripts --no-audit --no-fund
+      - run: npm run --prefix packages/typescript build
+      # やり直したときに、公開済みのものを公開し直そうとして落ちないよう、どちらも版が無いときだけ公開する
+      - name: Publish the crate to crates.io
+        env:
+          CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
+        run: |
+          version="${GITHUB_REF_NAME#v}"
+          if curl -fsS -A "modelith/plugin-sdk release" "https://crates.io/api/v1/crates/modelith-plugin-protocol/$version" >/dev/null 2>&1; then
+            echo "modelith-plugin-protocol $version is already on crates.io"
+          else
+            cargo publish -p modelith-plugin-protocol --locked
+          fi
+      - name: Publish the package to npm
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        working-directory: packages/typescript
+        run: |
+          version="${GITHUB_REF_NAME#v}"
+          # 無い版のときの npm view の終了コードは npm の版によって違うので、出力で見分ける
+          if [[ -n "$(npm view "@modelith/plugin-sdk@$version" version 2>/dev/null)" ]]; then
+            echo "@modelith/plugin-sdk $version is already on npm"
+          else
+            # プレリリース（-rc.1 など）は latest にしない
+            tag=latest
+            [[ $version == *-* ]] && tag=next
+            npm publish --ignore-scripts --provenance --access public --tag "$tag"
+          fi
