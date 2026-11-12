@@ -112,6 +112,37 @@ setup() {
   [ "${results[*]}" = "1 1 1 1" ]
 }
 
+@test "policy_git_command: 保護ブランチへの push は、書き方を変えても拒否する（異常系）" {
+  # Arrange（+refspec・refs/heads/・git -C・括弧の中・; の後）
+  local cmds=("git push origin +main" "git push origin refs/heads/dev" "git -C /p push origin dev" "(cd x && git push origin main)" "git status; git push origin dev")
+  # Act
+  local results=() c
+  for c in "${cmds[@]}"; do results+=("$(status_of policy_git_command "$c" feat/x)"); done
+  # Assert
+  [ "${results[*]}" = "1 1 1 1 1" ]
+}
+
+@test "policy_git_command: push 以外のコマンドやメッセージに出る保護ブランチ名では止めない（回帰）" {
+  # Arrange（同じコマンドの fetch・ヒアドキュメントのコミットメッセージ・-m の文・範囲指定・名前に main を含むブランチ）
+  local heredoc=$'git commit -F - <<\'EOF\'\nmerge dev into main\nEOF\ngit push -u origin feat/x'
+  local cmds=("git fetch origin dev && git push -u origin feat/x" "$heredoc" "git commit -m \"git push origin main\"" "git log origin/main..origin/dev" "git push origin feat/main-menu")
+  # Act
+  local results=() c
+  for c in "${cmds[@]}"; do results+=("$(status_of policy_git_command "$c" feat/x)"); done
+  # Assert
+  [ "${results[*]}" = "0 0 0 0 0" ]
+}
+
+@test "policy_push_args: push の引数だけを、push ごとに 1 行で取り出す（正常系）" {
+  # Arrange
+  local cmd=$'git fetch origin dev && git push -u origin feat/x\ngit push origin feat/y'
+  # Act
+  local args
+  args=$(policy_push_args "$cmd")
+  # Assert
+  [ "$args" = $' -u origin feat/x\n origin feat/y' ]
+}
+
 @test "policy_git_command: 保護ブランチ上の commit と、引数なし push は拒否する（異常系）" {
   # Arrange
   local branch=dev
