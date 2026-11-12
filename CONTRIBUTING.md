@@ -34,6 +34,8 @@ examples/*.json  ← checked by both Rust (serde) and TypeScript (the JSON Schem
   The integration tests fail when a generated file is out of date.
 - When you change a type, update `examples/` so that it uses the new field.
 - Constants that both languages need, such as id patterns, live in Rust and reach TypeScript through the generated file.
+- The code examples in the READMEs and `docs/` are tested: TypeScript examples are type-checked, JSON manifests and YAML rules
+  are checked against the schemas, and the browser plugin tutorial is run against a simulated host. Keep them complete enough to run.
 
 | Task | Command |
 | --- | --- |
@@ -41,6 +43,7 @@ examples/*.json  ← checked by both Rust (serde) and TypeScript (the JSON Schem
 | Quick check | `scripts/check.sh --fast` |
 | Regenerate schemas and TS types | `UPDATE_GENERATED=1 cargo test -p modelith-plugin-protocol --test generated` |
 | TypeScript tests | `npm test --prefix packages/typescript` |
+| Check the code examples in the READMEs and tutorials | `npm run test:integration --prefix packages/typescript` |
 | Harness tests | `tests/harness/node_modules/.bin/bats tests/harness/{unit,integration}` |
 
 ## Changing the contract

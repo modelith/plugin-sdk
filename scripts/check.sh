@@ -53,6 +53,8 @@ stage_integration() {
   "$BATS" tests/harness/integration
   step "[integration] rust（生成物の最新性・examples の読み込み）"
   cargo test --workspace --test '*' --quiet
+  step "[integration] typescript（README・手引きのコード例が今の SDK で動くか）"
+  npm run --prefix "$TS" -s test:integration
 }
 
 stage_system() {
