@@ -12,6 +12,7 @@
 <p align="center">
   <a href="README.ja.md">日本語</a> &nbsp;|&nbsp;
   <a href="#quick-start">Quick start</a> &nbsp;|&nbsp;
+  <a href="docs">Docs</a> &nbsp;|&nbsp;
   <a href="packages/typescript">TypeScript</a> &nbsp;|&nbsp;
   <a href="crates/modelith-plugin-protocol">Rust</a> &nbsp;|&nbsp;
   <a href="schema">JSON Schema</a> &nbsp;|&nbsp;
@@ -112,6 +113,7 @@ npx esbuild src/index.ts --bundle --format=iife --outfile=dist/index.js
 ```
 
 See [`examples/`](examples) for complete manifests, rule files and a full message exchange.
+For a step-by-step walkthrough, follow the tutorials: [a rules plugin](docs/tutorials/rules-plugin.md) and [a browser plugin](docs/tutorials/browser-plugin.md).
 
 ## Install
 
