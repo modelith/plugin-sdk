@@ -12,6 +12,7 @@
 <p align="center">
   <a href="README.md">English</a> &nbsp;|&nbsp;
   <a href="#はじめる">はじめる</a> &nbsp;|&nbsp;
+  <a href="docs/README.ja.md">文書</a> &nbsp;|&nbsp;
   <a href="packages/typescript">TypeScript</a> &nbsp;|&nbsp;
   <a href="crates/modelith-plugin-protocol">Rust</a> &nbsp;|&nbsp;
   <a href="schema">JSON Schema</a> &nbsp;|&nbsp;
@@ -113,6 +114,7 @@ npx esbuild src/index.ts --bundle --format=iife --outfile=dist/index.js
 ```
 
 マニフェスト・ルールファイル・メッセージのやり取りの全体の例は [`examples/`](examples) にあります。
+順を追って作るときは、手引き（[rules プラグイン](docs/tutorials/rules-plugin.ja.md)・[browser プラグイン](docs/tutorials/browser-plugin.ja.md)）をご覧ください。
 
 ## インストール
 
