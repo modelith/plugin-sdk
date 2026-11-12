@@ -1,0 +1,9 @@
+{
+  "id": "com.example.kettle-checks",
+  "name": "Kettle checks",
+  "version": "0.1.0",
+  "apiVersion": "0",
+  "runtime": "rules",
+  "license": "MIT",
+  "contributes": { "rules": ["rules.yaml"] }
+}

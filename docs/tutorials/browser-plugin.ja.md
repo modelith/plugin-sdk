@@ -186,6 +186,14 @@ npx esbuild src/main.ts --bundle --format=iife --target=es2022 --outfile=main.js
 
 `tsc` は型を検査するだけ（`noEmit`）で、`main.js` を書き出すのは esbuild です。
 
+Modelith に追加する前に、フォルダを検査します。SDK に、そのためのコマンドが入っています。
+
+```sh
+npx modelith-plugin validate
+```
+
+マニフェストの誤り、`main.js` が無いこと、`import` が残っていてまとめ直しが要る `main.js` などを知らせます。
+
 ## 5. Modelith に追加する
 
 1. Chrome か Edge で <https://modelith.github.io/modelith/> を開き、`part def` がいくつかあるモデルのフォルダを開きます。

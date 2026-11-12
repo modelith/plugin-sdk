@@ -60,6 +60,8 @@ stage_integration() {
 stage_system() {
   step "[system] typescript: build（npm パッケージとして組み立てる）"
   npm run --prefix "$TS" -s build
+  step "[system] typescript: modelith-plugin validate（組み立てたコマンドが、同梱のスキーマでプラグインを検査できるか）"
+  node "$TS/dist/bin.js" validate "$TS/fixtures/kettle-checks"
 }
 
 ensure_dependencies
