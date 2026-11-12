@@ -67,10 +67,47 @@ The SDK follows Modelith's [branching strategy](https://github.com/modelith/mode
   `<type>(<scope>): <summary>`, with the scope `protocol`, `schema`, `ts` or `harness`.
 - Pull requests to `dev` are squash-merged once CI (`check` and `conventions`) is green and no review comment is open.
 - Each release merges `dev` into `main` and tags `vMAJOR.MINOR.PATCH`. The crate and the npm package share the version.
+  See [Releasing](#releasing).
 
 Fill in the [pull request template](.github/pull_request_template.md). Behavior changes need tests: unit tests next to
 the code, integration tests in `crates/*/tests/`, and the test design rules in
 [`.claude/skills/testing-principles`](.claude/skills/testing-principles/SKILL.md) apply.
+
+## Releasing
+
+The crate and the npm package are released together, with the same version, from a tag on `main`.
+Pushing the tag starts the [Release](.github/workflows/release.yml) workflow:
+
+1. **verify**: the tag must be on `main` and match the version of both packages (`scripts/check-versions.sh <tag>`),
+   and `scripts/check.sh` must pass.
+2. **publish**: runs in the `release` environment, so it waits until a maintainer approves it.
+   It publishes the crate to crates.io and the package to npm (with provenance), skipping either one that is already published,
+   so a failed run can simply be re-run.
+
+Steps:
+
+1. On a branch from `dev` (`chore/release-v<version>`), set the version in `crates/modelith-plugin-protocol/Cargo.toml`
+   and `packages/typescript/package.json` (and their lockfiles), and move the `Unreleased` entries in `CHANGELOG.md` under the new version
+   with today's date. `scripts/check.sh` checks that both versions match. Merge the PR into `dev`.
+2. Open a PR from `dev` to `main`. **Merging it needs a maintainer's explicit approval**, and it is merged with a merge commit.
+3. Tag the merge commit on `main` and push the tag: `git tag v<version> <commit> && git push origin v<version>`.
+4. Approve the `publish` job when it asks, and check the new versions on crates.io and npm.
+5. Merge `main` back into `dev` with a merge commit.
+
+A pre-release version (`0.2.0-rc.1`) is published to npm under the `next` tag, not `latest`.
+
+### One-time setup
+
+A maintainer sets these up once, in the repository settings:
+
+- **Settings → Environments → New environment `release`**
+  - Required reviewers: the maintainers who approve each release.
+  - Deployment branches and tags: tags matching `v*` only.
+  - Environment secrets:
+    - `CARGO_REGISTRY_TOKEN`: a crates.io API token with the `publish-new` and `publish-update` scopes.
+      After the first release, restrict it to the crate `modelith-plugin-protocol`.
+    - `NPM_TOKEN`: an npm granular access token that can publish to the `@modelith` scope (the npm organization `modelith` must exist).
+      Give both tokens an expiry date and replace them before they expire.
 
 ## Adding or updating dependencies
 

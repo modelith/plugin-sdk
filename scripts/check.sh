@@ -23,6 +23,7 @@ ensure_dependencies() {
 stage_static() {
   step "[static] 禁止ファイル・ShellCheck"
   scripts/check-forbidden-files.sh
+  scripts/check-versions.sh
   shellcheck -x scripts/*.sh scripts/lib/*.sh .claude/hooks/*.sh
   step "[static] rust: fmt / $([[ $MODE == fast ]] && echo check || echo clippy)"
   cargo fmt --all -- --check
