@@ -11,8 +11,11 @@ See the [repository README](../../README.md) for an overview of plugin types.
 
 ## Install
 
+The package is attached to each [GitHub Release](https://github.com/modelith/plugin-sdk/releases), not published to the npm registry.
+Install it from the release's `.tgz`. It installs as `@modelith/plugin-sdk`, so imports stay the same:
+
 ```sh
-npm install @modelith/plugin-sdk
+npm install --save-dev https://github.com/modelith/plugin-sdk/releases/download/v0.1.0/modelith-plugin-sdk-0.1.0.tgz
 ```
 
 Until the first release, build it from the repository: `npm ci && npm run build` in `packages/typescript`.

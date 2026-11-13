@@ -81,8 +81,10 @@ Pushing the tag starts the [Release](.github/workflows/release.yml) workflow:
 1. **verify**: the tag must be on `main` and match the version of both packages (`scripts/check-versions.sh <tag>`),
    and `scripts/check.sh` must pass.
 2. **publish**: runs in the `release` environment, so it waits until a maintainer approves it.
-   It publishes the crate to crates.io and the package to npm (with provenance), skipping either one that is already published,
-   so a failed run can simply be re-run.
+   It publishes the crate to crates.io (skipped if that version is already there) and creates a GitHub Release
+   with the TypeScript package (`npm pack`) attached and the version's `CHANGELOG.md` section as its notes
+   (re-attached if the release already exists), so a failed run can simply be re-run.
+   The TypeScript package is not published to the npm registry.
 
 Steps:
 
@@ -91,10 +93,10 @@ Steps:
    with today's date. `scripts/check.sh` checks that both versions match. Merge the PR into `dev`.
 2. Open a PR from `dev` to `main`. **Merging it needs a maintainer's explicit approval**, and it is merged with a merge commit.
 3. Tag the merge commit on `main` and push the tag: `git tag v<version> <commit> && git push origin v<version>`.
-4. Approve the `publish` job when it asks, and check the new versions on crates.io and npm.
+4. Approve the `publish` job when it asks, and check the new version on crates.io and the GitHub Release.
 5. Merge `main` back into `dev` with a merge commit.
 
-A pre-release version (`0.2.0-rc.1`) is published to npm under the `next` tag, not `latest`.
+A pre-release version (`0.2.0-rc.1`) gets a GitHub Release marked as a pre-release.
 
 ### One-time setup
 
@@ -103,11 +105,9 @@ A maintainer sets these up once, in the repository settings:
 - **Settings → Environments → New environment `release`**
   - Required reviewers: the maintainers who approve each release.
   - Deployment branches and tags: tags matching `v*` only.
-  - Environment secrets:
-    - `CARGO_REGISTRY_TOKEN`: a crates.io API token with the `publish-new` and `publish-update` scopes.
-      After the first release, restrict it to the crate `modelith-plugin-protocol`.
-    - `NPM_TOKEN`: an npm granular access token that can publish to the `@modelith` scope (the npm organization `modelith` must exist).
-      Give both tokens an expiry date and replace them before they expire.
+  - Environment secret `CARGO_REGISTRY_TOKEN`: a crates.io API token with only the `publish-new` and `publish-update` scopes,
+    limited to the crate `modelith-plugin-protocol`, with an expiry date. Replace it before it expires.
+  - No npm token is needed: the TypeScript package goes to GitHub Releases with the workflow's own token.
 
 ## Adding or updating dependencies
 

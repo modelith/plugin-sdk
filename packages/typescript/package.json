@@ -33,10 +33,6 @@
     "dist",
     "schema"
   ],
-  "publishConfig": {
-    "access": "public",
-    "provenance": true
-  },
   "scripts": {
     "build": "tsc -p tsconfig.build.json && rm -rf schema && cp -r ../../schema schema",
     "typecheck": "tsc --noEmit",

@@ -32,7 +32,8 @@ The editor, plugin authors and the registry's CI all build on it.
 
 > [!NOTE]
 > The SDK is pre-1.0 (`apiVersion` `"0"`): the contract may still change between minor releases.
-> The packages are not on npm or crates.io yet — see [Install](#install).
+> Nothing is released yet. The crate will go to crates.io, and the TypeScript package will be attached to
+> [GitHub Releases](https://github.com/modelith/plugin-sdk/releases) (it is not on the npm registry) — see [Install](#install).
 
 ## What a plugin can be
 
@@ -129,8 +130,10 @@ For TypeScript, build the package from source (`npm ci && npm run build` in `pac
 After the first release:
 
 ```sh
-npm install @modelith/plugin-sdk
 cargo add modelith-plugin-protocol
+# The TypeScript package is attached to each GitHub Release, not published to the npm registry.
+# It still installs as @modelith/plugin-sdk, so imports stay the same.
+npm install --save-dev https://github.com/modelith/plugin-sdk/releases/download/v0.1.0/modelith-plugin-sdk-0.1.0.tgz
 ```
 
 ## What's in this repository

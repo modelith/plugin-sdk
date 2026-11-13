@@ -95,10 +95,10 @@ Node.js があれば、Modelith で開く前にプラグインのフォルダを
 `@modelith/plugin-sdk` の `modelith-plugin validate` が、マニフェストとルールのファイルの誤り（キーの綴りの誤りなど）を知らせます。
 
 ```sh
-npx -p @modelith/plugin-sdk modelith-plugin validate kettle/.modelith/plugins/com.example.kettle-checks
+npx -p https://github.com/modelith/plugin-sdk/releases/download/v0.1.0/modelith-plugin-sdk-0.1.0.tgz modelith-plugin validate kettle/.modelith/plugins/com.example.kettle-checks
 ```
 
-npm に公開されるまでは、[browser プラグインの手引き](browser-plugin.ja.md#1-プロジェクトを用意する) のとおりに組み立て、
+最初のリリースまでは、[browser プラグインの手引き](browser-plugin.ja.md#1-プロジェクトを用意する) のとおりに組み立て、
 代わりに `node plugin-sdk/packages/typescript/dist/bin.js validate …` を実行します。
 
 ## 3. Modelith で結果を見る

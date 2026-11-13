@@ -16,7 +16,7 @@ Modelith's screens are in Japanese, so this tutorial quotes their labels with a 
 
 ## 1. Set up the project
 
-Until `@modelith/plugin-sdk` is on npm, build it from this repository:
+Until the first release of the SDK, build it from this repository:
 
 ```sh
 git clone https://github.com/modelith/plugin-sdk
@@ -32,7 +32,12 @@ npm init -y
 npm install --save-dev esbuild typescript ../plugin-sdk/packages/typescript
 ```
 
-After the first release, `npm install --save-dev esbuild typescript @modelith/plugin-sdk` replaces the clone and the build.
+After the first release, install the SDK from its GitHub Release instead of the clone and the build
+(it is not on the npm registry, but it installs as `@modelith/plugin-sdk`):
+
+```sh
+npm install --save-dev esbuild typescript https://github.com/modelith/plugin-sdk/releases/download/v0.1.0/modelith-plugin-sdk-0.1.0.tgz
+```
 
 You end up with this layout. `main.js` is the bundled plugin that Modelith runs.
 

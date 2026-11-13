@@ -32,7 +32,8 @@ Modelith は、テキストと図を同期して編集できるオープンソ�
 
 > [!NOTE]
 > SDK は 1.0 未満（`apiVersion` は `"0"`）で、マイナーリリースの間でも契約が変わることがあります。
-> パッケージはまだ npm・crates.io に公開していません。[インストール](#インストール) をご覧ください。
+> まだリリースしていません。crate は crates.io に、TypeScript のパッケージは [GitHub Releases](https://github.com/modelith/plugin-sdk/releases) に添付して出します
+> （npm のレジストリには出しません）。[インストール](#インストール) をご覧ください。
 
 ## プラグインの種類
 
@@ -130,8 +131,10 @@ TypeScript は、`packages/typescript` で `npm ci && npm run build` を実行�
 最初のリリースの後は、次のように入れられます。
 
 ```sh
-npm install @modelith/plugin-sdk
 cargo add modelith-plugin-protocol
+# TypeScript のパッケージは、npm のレジストリではなく GitHub Release に添付している。
+# 入れると @modelith/plugin-sdk という名前で入るので、import はそのまま使える。
+npm install --save-dev https://github.com/modelith/plugin-sdk/releases/download/v0.1.0/modelith-plugin-sdk-0.1.0.tgz
 ```
 
 ## このリポジトリの構成

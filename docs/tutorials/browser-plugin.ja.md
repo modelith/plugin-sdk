@@ -15,7 +15,7 @@
 
 ## 1. プロジェクトを用意する
 
-`@modelith/plugin-sdk` が npm に公開されるまでは、このリポジトリから組み立てます。
+SDK の最初のリリースまでは、このリポジトリから組み立てます。
 
 ```sh
 git clone https://github.com/modelith/plugin-sdk
@@ -31,7 +31,12 @@ npm init -y
 npm install --save-dev esbuild typescript ../plugin-sdk/packages/typescript
 ```
 
-最初のリリースの後は、clone と組み立ての代わりに `npm install --save-dev esbuild typescript @modelith/plugin-sdk` で済みます。
+最初のリリースの後は、clone と組み立ての代わりに、GitHub Release から SDK を入れます
+（npm のレジストリには出していませんが、`@modelith/plugin-sdk` という名前で入ります）。
+
+```sh
+npm install --save-dev esbuild typescript https://github.com/modelith/plugin-sdk/releases/download/v0.1.0/modelith-plugin-sdk-0.1.0.tgz
+```
 
 次の構成になります。`main.js` は、Modelith が動かす、1 つにまとめたプラグインです。
 
