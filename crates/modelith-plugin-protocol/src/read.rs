@@ -90,8 +90,13 @@ pub struct ElementDetail {
 #[cfg_attr(feature = "codegen", derive(schemars::JsonSchema, ts_rs::TS))]
 #[serde(rename_all = "camelCase")]
 pub struct ElementRelation {
-    /// 関係の種類。[`crate::RelationKind`] にあるものは同じ言葉（`satisfy` など）、
-    /// それ以外（特化・型付け・接続など）は camelCase の言葉。一覧はコアに合わせて決める。
+    /// 関係の種類。今の言葉は次の 13 個（一般の図に出る関係）。
+    /// - [`crate::RelationKind`] と同じもの: `satisfy`・`verify`・`frame`・`derivation`・`flow`
+    /// - それ以外: `composition`（部品として持つ）・`definedBy`（用法 → その型の定義）・`allocate`・
+    ///   `dependency`・`specialize`・`subset`・`redefine`・`reference`
+    ///
+    /// 送り手が種類を足しても古い受け手が拒まないよう、列挙にせず文字列のままにする。
+    /// 受け手は、知らない言葉の関係を「そのほかの関係」として扱う。
     pub kind: String,
     pub direction: RelationDirection,
     /// 相手の要素の修飾名。

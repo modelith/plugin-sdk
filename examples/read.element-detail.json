@@ -20,6 +20,6 @@
   "ports": [{ "name": "checkout", "type": "PaymentPort", "direction": "out" }],
   "relations": [
     { "kind": "satisfy", "direction": "outgoing", "other": "Shop::Requirements::HoldItems" },
-    { "kind": "specialization", "direction": "outgoing", "other": "Shop::Container" }
+    { "kind": "specialize", "direction": "outgoing", "other": "Shop::Container" }
   ]
 }
