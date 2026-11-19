@@ -494,6 +494,11 @@ appVersion: string, channel: Channel, };
 
 export type DailyReport = { schemaVersion: number, 
 /**
+ * 環境（任意）。日に 1 回なので、起動の回数ではなく使われた端末の数に近い分母になる。
+ * 起動の報告と同じ値を載せる。受け口は本文の種類ごとに分けて数える。
+ */
+browser?: Browser, os?: Os, screen?: ScreenClass, language?: Language, folderAccess?: boolean, 
+/**
  * その日に初めて起きた、使い始めの段階（同じ段階は 1 回だけ）。
  */
 onboarding: Array<OnboardingStep>, 

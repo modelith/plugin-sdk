@@ -293,6 +293,17 @@
             "trace": 0
           }
         },
+        "browser": {
+          "description": "環境（任意）。日に 1 回なので、起動の回数ではなく使われた端末の数に近い分母になる。\n起動の報告と同じ値を載せる。受け口は本文の種類ごとに分けて数える。",
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Browser"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
         "channel": {
           "$ref": "#/$defs/Channel",
           "x-modelith-dimension": true
@@ -373,6 +384,22 @@
           ],
           "pattern": "^\\d{4}-Q[1-4]$"
         },
+        "folderAccess": {
+          "type": [
+            "boolean",
+            "null"
+          ]
+        },
+        "language": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Language"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
         "layout": {
           "description": "図の見た目だけを変える操作の回数（モデルは変わらない）。",
           "$ref": "#/$defs/Layout",
@@ -391,6 +418,16 @@
           },
           "maxItems": 7,
           "uniqueItems": true
+        },
+        "os": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Os"
+            },
+            {
+              "type": "null"
+            }
+          ]
         },
         "parseTimes": {
           "description": "解析にかかった時間の区分ごとの回数（ファイルの大きさの区分ごと）。同じ組が 2 度あれば、受け口は足し合わせる。",
@@ -419,6 +456,16 @@
           "type": "integer",
           "format": "uint32",
           "minimum": 0
+        },
+        "screen": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ScreenClass"
+            },
+            {
+              "type": "null"
+            }
+          ]
         },
         "wasmLoadFailures": {
           "description": "wasm を読み込めなかった回数。",

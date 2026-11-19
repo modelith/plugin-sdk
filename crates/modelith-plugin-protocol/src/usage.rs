@@ -103,6 +103,23 @@ pub struct DailyReport {
     pub schema_version: u32,
     #[serde(flatten)]
     pub sender: Sender,
+    /// 環境（任意）。日に 1 回なので、起動の回数ではなく使われた端末の数に近い分母になる。
+    /// 起動の報告と同じ値を載せる。受け口は本文の種類ごとに分けて数える。
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    #[cfg_attr(feature = "codegen", ts(optional))]
+    pub browser: Option<Browser>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    #[cfg_attr(feature = "codegen", ts(optional))]
+    pub os: Option<Os>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    #[cfg_attr(feature = "codegen", ts(optional))]
+    pub screen: Option<ScreenClass>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    #[cfg_attr(feature = "codegen", ts(optional))]
+    pub language: Option<Language>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    #[cfg_attr(feature = "codegen", ts(optional))]
+    pub folder_access: Option<bool>,
     /// その日に初めて起きた、使い始めの段階（同じ段階は 1 回だけ）。
     #[serde(default)]
     #[cfg_attr(
