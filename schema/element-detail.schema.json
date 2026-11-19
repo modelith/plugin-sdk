@@ -1,0 +1,227 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "ElementDetail",
+  "description": "要素の詳細。",
+  "type": "object",
+  "properties": {
+    "doc": {
+      "description": "説明（`doc`）。書いていなければ省く。",
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "file": {
+      "description": "要素を書いたファイル（[`ProjectFile`] の `path`）。",
+      "type": "string"
+    },
+    "kind": {
+      "description": "要素の種類（例: `part def`）。[`crate::ModelElement`] の `kind` と同じ言葉。",
+      "type": "string"
+    },
+    "members": {
+      "description": "直下の要素（属性・部品・ポートなど）。",
+      "type": "array",
+      "default": [],
+      "items": {
+        "$ref": "#/$defs/ElementSummary"
+      }
+    },
+    "name": {
+      "type": "string"
+    },
+    "phase": {
+      "description": "工程（`@Phase`）の名前。",
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "ports": {
+      "type": "array",
+      "default": [],
+      "items": {
+        "$ref": "#/$defs/ModelPort"
+      }
+    },
+    "qualifiedName": {
+      "description": "修飾名（例: `Shop::Cart`）。",
+      "type": "string"
+    },
+    "range": {
+      "description": "テキスト上の位置。",
+      "$ref": "#/$defs/Range"
+    },
+    "relations": {
+      "description": "この要素から出る関係と、この要素に入る関係。",
+      "type": "array",
+      "default": [],
+      "items": {
+        "$ref": "#/$defs/ElementRelation"
+      }
+    },
+    "shortName": {
+      "description": "短い名前（`<C1>`）。書いていなければ省く。",
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "type": {
+      "description": "型の名前（書かれたまま）。書いていなければ省く。",
+      "type": [
+        "string",
+        "null"
+      ]
+    }
+  },
+  "required": [
+    "qualifiedName",
+    "name",
+    "kind",
+    "file",
+    "range"
+  ],
+  "$defs": {
+    "ElementRelation": {
+      "description": "要素の関係。",
+      "type": "object",
+      "properties": {
+        "direction": {
+          "$ref": "#/$defs/RelationDirection"
+        },
+        "kind": {
+          "description": "関係の種類。[`crate::RelationKind`] にあるものは同じ言葉（`satisfy` など）、\nそれ以外（特化・型付け・接続など）は camelCase の言葉。一覧はコアに合わせて決める。",
+          "type": "string"
+        },
+        "other": {
+          "description": "相手の要素の修飾名。",
+          "type": "string"
+        }
+      },
+      "required": [
+        "kind",
+        "direction",
+        "other"
+      ]
+    },
+    "ElementSummary": {
+      "description": "要素の概要。",
+      "type": "object",
+      "properties": {
+        "file": {
+          "description": "要素を書いたファイル（[`ProjectFile`] の `path`）。",
+          "type": "string"
+        },
+        "kind": {
+          "description": "要素の種類（例: `part def`）。[`crate::ModelElement`] の `kind` と同じ言葉。",
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "qualifiedName": {
+          "description": "修飾名（例: `Shop::Cart`）。",
+          "type": "string"
+        },
+        "range": {
+          "description": "テキスト上の位置。",
+          "$ref": "#/$defs/Range"
+        },
+        "shortName": {
+          "description": "短い名前（`<C1>`）。書いていなければ省く。",
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      },
+      "required": [
+        "qualifiedName",
+        "name",
+        "kind",
+        "file",
+        "range"
+      ]
+    },
+    "ModelPort": {
+      "type": "object",
+      "properties": {
+        "direction": {
+          "description": "向き。書いていなければ省く。",
+          "anyOf": [
+            {
+              "$ref": "#/$defs/PortDirection"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "name": {
+          "type": "string"
+        },
+        "type": {
+          "description": "ポートの型の名前。型を書いていなければ省く。",
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      },
+      "required": [
+        "name"
+      ]
+    },
+    "PortDirection": {
+      "type": "string",
+      "enum": [
+        "in",
+        "out",
+        "inout"
+      ]
+    },
+    "Position": {
+      "type": "object",
+      "properties": {
+        "character": {
+          "type": "integer",
+          "format": "uint32",
+          "minimum": 0
+        },
+        "line": {
+          "type": "integer",
+          "format": "uint32",
+          "minimum": 0
+        }
+      },
+      "required": [
+        "line",
+        "character"
+      ]
+    },
+    "Range": {
+      "type": "object",
+      "properties": {
+        "end": {
+          "$ref": "#/$defs/Position"
+        },
+        "start": {
+          "$ref": "#/$defs/Position"
+        }
+      },
+      "required": [
+        "start",
+        "end"
+      ]
+    },
+    "RelationDirection": {
+      "description": "関係の向き（この要素から見て）。",
+      "type": "string",
+      "enum": [
+        "outgoing",
+        "incoming"
+      ]
+    }
+  }
+}

@@ -284,6 +284,111 @@ label?: string, } | { "type": "commandDone", requestId: number, } | { "type": "i
  */
 base64: string, } | { "type": "failed", requestId: number, message: string, } | { "type": "storageGet", requestId: number, key: string, } | { "type": "storageSet", requestId: number, key: string, value: unknown, } | { "type": "notify", level: NotifyLevel, message: string, };
 
+export type ProjectFile = { 
+/**
+ * プロジェクトのフォルダからのパス（`/` 区切り）。
+ */
+path: string, };
+
+export type ElementSummary = { 
+/**
+ * 修飾名（例: `Shop::Cart`）。
+ */
+qualifiedName: string, name: string, 
+/**
+ * 短い名前（`<C1>`）。書いていなければ省く。
+ */
+shortName?: string, 
+/**
+ * 要素の種類（例: `part def`）。[`crate::ModelElement`] の `kind` と同じ言葉。
+ */
+kind: string, 
+/**
+ * 要素を書いたファイル（[`ProjectFile`] の `path`）。
+ */
+file: string, 
+/**
+ * テキスト上の位置。
+ */
+range: Range, };
+
+export type RelationDirection = "outgoing" | "incoming";
+
+export type ElementRelation = { 
+/**
+ * 関係の種類。[`crate::RelationKind`] にあるものは同じ言葉（`satisfy` など）、
+ * それ以外（特化・型付け・接続など）は camelCase の言葉。一覧はコアに合わせて決める。
+ */
+kind: string, direction: RelationDirection, 
+/**
+ * 相手の要素の修飾名。
+ */
+other: string, };
+
+export type ElementDetail = { 
+/**
+ * 説明（`doc`）。書いていなければ省く。
+ */
+doc?: string, 
+/**
+ * 型の名前（書かれたまま）。書いていなければ省く。
+ */
+type?: string, 
+/**
+ * 工程（`@Phase`）の名前。
+ */
+phase?: string, 
+/**
+ * 直下の要素（属性・部品・ポートなど）。
+ */
+members: Array<ElementSummary>, ports: Array<ModelPort>, 
+/**
+ * この要素から出る関係と、この要素に入る関係。
+ */
+relations: Array<ElementRelation>, 
+/**
+ * 修飾名（例: `Shop::Cart`）。
+ */
+qualifiedName: string, name: string, 
+/**
+ * 短い名前（`<C1>`）。書いていなければ省く。
+ */
+shortName?: string, 
+/**
+ * 要素の種類（例: `part def`）。[`crate::ModelElement`] の `kind` と同じ言葉。
+ */
+kind: string, 
+/**
+ * 要素を書いたファイル（[`ProjectFile`] の `path`）。
+ */
+file: string, 
+/**
+ * テキスト上の位置。
+ */
+range: Range, };
+
+export type DiagramSummary = { name: string, qualifiedName: string, 
+/**
+ * 図の種類。view の型の名前（例: `GeneralView`・`InterconnectionView`）。
+ */
+kind: string, file: string, range: Range, };
+
+export type ProjectOutline = { files: Array<ProjectFile>, 
+/**
+ * 定義と用法（入れ子の要素も含む）。
+ */
+elements: Array<ElementSummary>, 
+/**
+ * テキストに書いた図（view）。
+ */
+diagrams: Array<DiagramSummary>, };
+
+export type ProblemReport = { 
+/**
+ * 問題のあるファイル。
+ */
+file: string, diagnostic: Diagnostic, };
+
 export type Count = number;
 
 export type Channel = "stable" | "rc" | "preview";

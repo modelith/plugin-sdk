@@ -10,6 +10,7 @@ mod edit;
 mod id;
 mod manifest;
 mod message;
+mod read;
 mod registry;
 mod rules;
 pub mod usage;
@@ -23,6 +24,10 @@ pub use manifest::{
 pub use message::{
     HostMessage, ModelElement, ModelPort, ModelRelation, ModelSnapshot, NotifyLevel, PluginMessage,
     PortDirection, RelationKind,
+};
+pub use read::{
+    DiagramSummary, ElementDetail, ElementRelation, ElementSummary, ProblemReport, ProjectFile,
+    ProjectOutline, RelationDirection,
 };
 pub use registry::{Pricing, Publisher, RegistryEntry, RegistryVersion};
 pub use rules::{
