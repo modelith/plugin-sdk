@@ -1,0 +1,243 @@
+import { readFileSync, readdirSync } from "node:fs";
+import { join } from "node:path";
+import Ajv2020 from "ajv/dist/2020.js";
+import { describe, expect, it } from "vitest";
+import { COUNT_MAX, isValidPluginId } from "./index.js";
+
+const root = join(import.meta.dirname, "../../..");
+const readJson = (...p: string[]) => JSON.parse(readFileSync(join(root, ...p), "utf8"));
+
+describe("isValidPluginId", () => {
+  // Rust 側（crates/modelith-plugin-protocol/src/id.rs）のテストと同じ同値クラス・境界値
+  it.each(["com.example.fmea-check", "jp.modelith.iso15288-rules", "a.b"])("accepts %s", (id: string) => {
+    // Arrange（正常系: 逆ドメイン形式。a.b は最短の境界値）
+    const candidate = id;
+    // Act
+    const valid = isValidPluginId(candidate);
+    // Assert
+    expect(valid).toBe(true);
+  });
+
+  it.each(["", "single", "Com.example", "com..example", "com.example.", "1com.x", "com.ex_ample"])(
+    "rejects %j",
+    (id: string) => {
+      // Arrange（異常系: 区切り不足・大文字・空の区切り・数字始まり・使えない文字）
+      const candidate = id;
+      // Act
+      const valid = isValidPluginId(candidate);
+      // Assert
+      expect(valid).toBe(false);
+    },
+  );
+});
+
+describe("JSON Schema accepts the shared examples", () => {
+  const ajv = new Ajv2020.default({ strict: false });
+  const manifest = ajv.compile(readJson("schema/plugin-manifest.schema.json"));
+  const entry = ajv.compile(readJson("schema/registry-entry.schema.json"));
+  const ruleSet = ajv.compile(readJson("schema/rule-set.schema.json"));
+  const hostMessage = ajv.compile(readJson("schema/host-message.schema.json"));
+  const pluginMessage = ajv.compile(readJson("schema/plugin-message.schema.json"));
+  const manifests = readdirSync(join(root, "examples")).filter((f) => f.startsWith("manifest."));
+
+  it.each(manifests)("%s", (file: string) => {
+    // Arrange
+    const json = readJson("examples", file);
+    // Act
+    const valid = manifest(json);
+    // Assert
+    expect(valid, JSON.stringify(manifest.errors)).toBe(true);
+  });
+
+  it("registry-entry.json", () => {
+    // Arrange
+    const json = readJson("examples", "registry-entry.json");
+    // Act
+    const valid = entry(json);
+    // Assert
+    expect(valid, JSON.stringify(entry.errors)).toBe(true);
+  });
+
+  it("rule-set.json", () => {
+    // Arrange
+    const json = readJson("examples", "rule-set.json");
+    // Act
+    const valid = ruleSet(json);
+    // Assert
+    expect(valid, JSON.stringify(ruleSet.errors)).toBe(true);
+  });
+
+  it.each([
+    ["an invalid rule id", { id: "Bad" }],
+    ["an unknown key", { extra: 1 }],
+    ["a kind that is neither string nor list", { match: { kind: 1 } }],
+  ])("rule set rejects %s", (_: string, patch: Record<string, unknown>) => {
+    // Arrange（異常系: Rust 側の rules.rs のテストと同じ同値クラス）
+    const base = readJson("examples", "rule-set.json");
+    const json = { rules: [{ ...base.rules[0], ...patch }] };
+    // Act
+    const valid = ruleSet(json);
+    // Assert
+    expect(valid).toBe(false);
+  });
+
+  const messageCases = (file: string) =>
+    (readJson("examples", file) as { type: string }[]).map((m, i) => [`${file}[${i}] ${m.type}`, m] as const);
+
+  it.each(messageCases("messages.host.json"))("%s", (_: string, message: unknown) => {
+    // Arrange
+    const json = message;
+    // Act
+    const valid = hostMessage(json);
+    // Assert
+    expect(valid, JSON.stringify(hostMessage.errors)).toBe(true);
+  });
+
+  it.each(messageCases("messages.plugin.json"))("%s", (_: string, message: unknown) => {
+    // Arrange
+    const json = message;
+    // Act
+    const valid = pluginMessage(json);
+    // Assert
+    expect(valid, JSON.stringify(pluginMessage.errors)).toBe(true);
+  });
+
+  it.each([
+    ["an unknown type", { type: "shutdown" }],
+    ["a missing required field", { type: "failed", requestId: 1 }],
+    ["an unknown notify level", { type: "notify", level: "debug", message: "m" }],
+  ])("plugin message rejects %s", (_: string, json: unknown) => {
+    // Arrange（異常系: Rust 側の message.rs のテストと同じ同値クラス）
+    const message = json;
+    // Act
+    const valid = pluginMessage(message);
+    // Assert
+    expect(valid).toBe(false);
+  });
+
+  it.each([">=0.1.0, <0.3.0", "^0.2", "0.1.0", "<1", "*", "0.2.x", "1.X", "0.2.*", ">=0.2.0-beta.1, <0.3.0", "^0.1.0+build.5", ">= 0.2.0"])("accepts the host version range %s", (range: string) => {
+    // Arrange（正常系: 比べる記号と版をカンマで区切った範囲。Cargo と同じく *・桁の x・プレリリースの版も書ける）
+    const json = { ...readJson("examples", "manifest.rules.json"), engines: { modelith: range } };
+    // Act
+    const valid = manifest(json);
+    // Assert
+    expect(valid, JSON.stringify(manifest.errors)).toBe(true);
+  });
+
+  it.each(["", "latest", ">=0.1.0 <0.3.0", "0.1.0.1", "x", "1.y", ">=0.1.0,"])("rejects the host version range %j", (range: string) => {
+    // Arrange（異常系: 空・名前・カンマの無い並び・4 つ目の数・数の無い x・x でない文字の桁・空の組）
+    const json = { ...readJson("examples", "manifest.rules.json"), engines: { modelith: range } };
+    // Act
+    const valid = manifest(json);
+    // Assert
+    expect(valid).toBe(false);
+  });
+
+  it("rejects an invalid plugin id", () => {
+    // Arrange（異常系: スキーマのパターンに反する id）
+    const json = { ...readJson("examples", "manifest.rules.json"), id: "Bad" };
+    // Act
+    const valid = manifest(json);
+    // Assert
+    expect(valid).toBe(false);
+  });
+});
+
+describe("usage report schema", () => {
+  const ajv = new Ajv2020.default({ strict: false });
+  const schema = readJson("schema/usage-report.schema.json") as { oneOf: Record<string, unknown>[]; $defs: Record<string, { properties: Record<string, Record<string, unknown>> }> };
+  const report = ajv.compile(schema);
+  const reports = readJson("examples", "usage-reports.json") as { kind: string }[];
+  const startup = reports.find((r) => r.kind === "startup");
+
+  it.each(reports.map((r, i) => [`usage-reports.json[${i}] ${r.kind}`, r] as const))("accepts %s", (_: string, json: unknown) => {
+    // Arrange
+    const body = json;
+    // Act
+    const valid = report(body);
+    // Assert
+    expect(valid, JSON.stringify(report.errors)).toBe(true);
+  });
+
+  it("ignores unknown fields from a newer sender", () => {
+    // Arrange
+    const body = { ...startup, newField: 1 };
+    // Act
+    const valid = report(body);
+    // Assert
+    expect(valid, JSON.stringify(report.errors)).toBe(true);
+  });
+
+  it.each([
+    ["free text in a class", { startupTime: "2.3 seconds" }],
+    ["a missing schemaVersion", { schemaVersion: undefined }],
+    ["an unknown browser", { browser: "netscape" }],
+    ["a missing client", { client: undefined }],
+    ["an appVersion that is not a version", { appVersion: "my build" }],
+  ])("rejects %s", (_: string, change: object) => {
+    // Arrange（異常系: Rust 側の usage.rs のテストと同じ同値クラス）
+    const body = JSON.parse(JSON.stringify({ ...startup, ...change }));
+    // Act
+    const valid = report(body);
+    // Assert
+    expect(valid).toBe(false);
+  });
+
+  it.each([
+    ["the maximum", COUNT_MAX, true],
+    ["the maximum + 1", COUNT_MAX + 1, false],
+    ["-1", -1, false],
+  ])("a count of %s is %s", (_: string, n: number, expected: boolean) => {
+    // Arrange（境界値）
+    const body = { ...reports.find((r) => r.kind === "daily"), aiRewrites: n };
+    // Act
+    const valid = report(body);
+    // Assert
+    expect(valid).toBe(expected);
+  });
+
+  it.each([
+    ["a repeated onboarding step", "daily", { onboarding: ["saved", "saved"] }, false],
+    ["a frame line at the maximum", "error", { frames: [{ module: "assets/a.js", line: 10_000_000 }] }, true],
+    ["a frame line over the maximum", "error", { frames: [{ module: "assets/a.js", line: 10_000_001 }] }, false],
+    ["a module path over 120 characters", "error", { frames: [{ module: "a".repeat(121) }] }, false],
+    ["a first quarter", "daily", { firstQuarter: "2026-Q1" }, true],
+    ["a first month instead of a quarter", "daily", { firstQuarter: "2026-10" }, false],
+    ["an appVersion over 32 characters", "startup", { appVersion: `1.0.0-${"a".repeat(27)}` }, false],
+  ])("%s is valid: %s", (_: string, kind: string, change: object, expected: boolean) => {
+    // Arrange（境界値・異常系）
+    const body = { ...reports.find((r) => r.kind === kind), ...change };
+    // Act
+    const valid = report(body);
+    // Assert
+    expect(valid).toBe(expected);
+  });
+
+  it("annotates when, at which level and how large each report is", () => {
+    // Arrange
+    const variants = schema.oneOf;
+    // Act
+    const annotations = Object.fromEntries(
+      variants.map((v) => [
+        (v.properties as { kind: { const: string } }).kind.const,
+        [v["x-modelith-when"], v["x-modelith-level"], v["x-modelith-max-bytes"]],
+      ]),
+    );
+    // Assert
+    expect(annotations).toEqual({
+      startup: ["startup", "all", 1024],
+      daily: ["daily", "all", 8192],
+      error: ["error", "error", 4096],
+      serverDaily: ["daily", "all", 2048],
+    });
+  });
+
+  it.each(["StartupReport", "DailyReport", "ErrorReport", "ServerDailyReport"])("%s marks only the sender as dimensions", (name: string) => {
+    // Arrange
+    const properties = schema.$defs[name]?.properties ?? {};
+    // Act
+    const dimensions = Object.keys(properties).filter((k) => properties[k]?.["x-modelith-dimension"] === true);
+    // Assert
+    expect(dimensions.sort()).toEqual(["appVersion", "channel", "client"]);
+  });
+});

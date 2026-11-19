@@ -1,0 +1,75 @@
+#!/usr/bin/env bash
+# ハーネスの単一エントリポイント。人間・AI エージェント・CI すべてがこれを実行する。
+# テスト原則（.claude/skills/testing-principles/）に従い、静的検査 → 単体 → 結合 → 統合 の順に実行し、
+# 失敗した段階で止まる。
+#   scripts/check.sh          全段階
+#   scripts/check.sh --fast   静的検査（軽量）と単体テストのみ（Stop フック用）
+set -euo pipefail
+cd "$(git rev-parse --show-toplevel)"
+
+MODE=full
+[[ ${1:-} == --fast ]] && MODE=fast
+BATS=tests/harness/node_modules/.bin/bats
+TS=packages/typescript
+
+step() { printf '\n==> %s\n' "$*"; }
+
+ensure_dependencies() {
+  [[ -d $TS/node_modules ]] || npm ci --prefix "$TS" --ignore-scripts --no-audit --no-fund
+  [[ -d tests/harness/node_modules ]] || npm ci --prefix tests/harness --ignore-scripts --no-audit --no-fund
+  command -v shellcheck >/dev/null || { echo "ERROR: shellcheck が必要です（apt-get install shellcheck・brew install shellcheck など）" >&2; exit 1; }
+}
+
+stage_static() {
+  step "[static] 禁止ファイル・ShellCheck"
+  scripts/check-forbidden-files.sh
+  scripts/check-versions.sh
+  shellcheck -x scripts/*.sh scripts/lib/*.sh .claude/hooks/*.sh
+  step "[static] rust: fmt / $([[ $MODE == fast ]] && echo check || echo clippy)"
+  cargo fmt --all -- --check
+  if [[ $MODE == fast ]]; then
+    cargo check --workspace --all-targets --quiet
+  else
+    cargo clippy --workspace --all-targets --all-features -- -D warnings
+  fi
+  # 利用側（modelith の wasm など）は codegen なしで使う。テストは dev-dependencies で codegen を有効にするので、ライブラリ単体で確かめる。
+  cargo check -p modelith-plugin-protocol --lib --quiet
+  step "[static] typescript: typecheck"
+  npm run --prefix "$TS" -s typecheck
+}
+
+stage_unit() {
+  step "[unit] harness"
+  "$BATS" tests/harness/unit
+  step "[unit] rust"
+  cargo test --workspace --lib --bins --quiet
+  # README の例（crate の doc に取り込んでいる）が古くならないよう、doctest も走らせる
+  cargo test --workspace --doc --quiet
+  step "[unit] typescript"
+  npm run --prefix "$TS" -s test
+}
+
+stage_integration() {
+  step "[integration] harness"
+  "$BATS" tests/harness/integration
+  step "[integration] rust（生成物の最新性・examples の読み込み）"
+  cargo test --workspace --test '*' --quiet
+  step "[integration] typescript（README・手引きのコード例が今の SDK で動くか）"
+  npm run --prefix "$TS" -s test:integration
+}
+
+stage_system() {
+  step "[system] typescript: build（npm パッケージとして組み立てる）"
+  npm run --prefix "$TS" -s build
+  step "[system] typescript: modelith-plugin validate（組み立てたコマンドが、同梱のスキーマでプラグインを検査できるか）"
+  node "$TS/dist/bin.js" validate "$TS/fixtures/kettle-checks"
+}
+
+ensure_dependencies
+stage_static
+stage_unit
+if [[ $MODE == full ]]; then
+  stage_integration
+  stage_system
+fi
+step "OK ($MODE)"

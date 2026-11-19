@@ -1,0 +1,293 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Modelith plugin manifest",
+  "description": "プラグインのマニフェスト。",
+  "type": "object",
+  "properties": {
+    "apiVersion": {
+      "description": "対象とするプラグイン API のメジャーバージョン（plugin-sdk のメジャーバージョン）。",
+      "type": "string",
+      "pattern": "^\\d+$"
+    },
+    "author": {
+      "description": "作者の名前。権限を許可する画面などに出す。",
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "contributes": {
+      "$ref": "#/$defs/Contributes",
+      "default": {}
+    },
+    "description": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "engines": {
+      "description": "動く本体の版の範囲。書かなければ、どの版の本体でも動かす。",
+      "anyOf": [
+        {
+          "$ref": "#/$defs/Engines"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "id": {
+      "$ref": "#/$defs/PluginId"
+    },
+    "license": {
+      "description": "SPDX ライセンス式。",
+      "type": "string"
+    },
+    "main": {
+      "description": "エントリポイント。`rules` では不要。\n- `browser`: 1 つのファイルにまとめた従来型のスクリプト（例: ESM を IIFE にまとめたもの）。\n  モジュール形式（`import` / `export` を含むもの）は Chromium のサンドボックス化した iframe の中で動かせない（ADR-0018 §3.1）。\n- `wasm-component`: .wasm ファイル。",
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "name": {
+      "description": "表示名。",
+      "type": "string"
+    },
+    "permissions": {
+      "description": "要求する権限。宣言していない操作はホストが拒否する。",
+      "type": "array",
+      "default": [],
+      "items": {
+        "$ref": "#/$defs/Permission"
+      }
+    },
+    "runtime": {
+      "$ref": "#/$defs/Runtime"
+    },
+    "version": {
+      "description": "プラグイン自身のバージョン（SemVer）。",
+      "type": "string",
+      "pattern": "^\\d+\\.\\d+\\.\\d+(-[0-9A-Za-z.-]+)?(\\+[0-9A-Za-z.-]+)?$"
+    }
+  },
+  "additionalProperties": false,
+  "required": [
+    "id",
+    "name",
+    "version",
+    "apiVersion",
+    "runtime",
+    "license"
+  ],
+  "$defs": {
+    "Command": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "title": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "title"
+      ]
+    },
+    "Contributes": {
+      "description": "プラグインが追加する機能（拡張点）。",
+      "type": "object",
+      "properties": {
+        "commands": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Command"
+          }
+        },
+        "exporters": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Exporter"
+          }
+        },
+        "importers": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Importer"
+          }
+        },
+        "palette": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/PaletteItem"
+          }
+        },
+        "rules": {
+          "description": "検査ルールのファイル（YAML）。",
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "views": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/View"
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "Engines": {
+      "description": "プラグインが動く本体の版の範囲（本体の ADR-0023 §5）。\n\n本体の公開の系列（安定版・リリース候補版・プレビュー版）が同時に動くので、新しい本体の機能に頼るプラグインは、\n動く版の範囲をここに書く。範囲の外の本体は、プラグインを動かさずに利用者に知らせる。",
+      "type": "object",
+      "properties": {
+        "modelith": {
+          "description": "Modelith の版の範囲。比べる記号と版をカンマで区切って並べる（Cargo の版の指定と同じ書き方。例: `\">=0.1.0, <0.3.0\"`・`\"^0.2\"`・`\"0.2.x\"`・`\"*\"`）。\n桁を `x`・`X`・`*` にすると、その桁から後ろを書かなかったのと同じ。版に付けたプレリリースとビルドの印（`-beta.1`・`+b5`）は比べるときに外す。\n本体も、自分の版からプレリリースの印を外して比べる（`0.2.0-beta.1` の本体は `0.2.0` として扱う）。",
+          "type": "string",
+          "pattern": "^\\s*(\\*|(=|>=?|<=?|~|\\^)?\\s*\\d+(\\.(\\d+|[xX*])){0,2}([-+][0-9A-Za-z.-]+)*)(\\s*,\\s*(\\*|(=|>=?|<=?|~|\\^)?\\s*\\d+(\\.(\\d+|[xX*])){0,2}([-+][0-9A-Za-z.-]+)*))*\\s*$"
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "modelith"
+      ]
+    },
+    "Exporter": {
+      "type": "object",
+      "properties": {
+        "extension": {
+          "description": "出力ファイルの拡張子（例: `.drawio`）。",
+          "type": "string"
+        },
+        "id": {
+          "type": "string"
+        },
+        "label": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "label",
+        "extension"
+      ]
+    },
+    "Importer": {
+      "type": "object",
+      "properties": {
+        "extensions": {
+          "description": "対応する拡張子（例: `.reqif`）。",
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "id": {
+          "type": "string"
+        },
+        "label": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "label",
+        "extensions"
+      ]
+    },
+    "PaletteItem": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "label": {
+          "type": "string"
+        },
+        "snippet": {
+          "description": "配置時に挿入する SysML v2 テキストの雛形。",
+          "type": "string"
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "label",
+        "snippet"
+      ]
+    },
+    "Permission": {
+      "description": "プラグインが要求できる権限。",
+      "oneOf": [
+        {
+          "description": "モデル（テキスト・解析結果）を読む。",
+          "type": "string",
+          "const": "model:read"
+        },
+        {
+          "description": "`TextEdit` による変更案を返す。",
+          "type": "string",
+          "const": "edits:propose"
+        },
+        {
+          "description": "ネットワークにアクセスする。",
+          "type": "string",
+          "const": "network"
+        },
+        {
+          "description": "プラグイン専用の永続ストレージを使う。",
+          "type": "string",
+          "const": "storage"
+        }
+      ]
+    },
+    "PluginId": {
+      "description": "Reverse-domain plugin id, e.g. \"com.example.my-plugin\".",
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9-]*(\\.[a-z][a-z0-9-]*)+$"
+    },
+    "Runtime": {
+      "description": "プラグインの実行方式（ADR-0004 の段階に対応）。",
+      "oneOf": [
+        {
+          "description": "v0: YAML 宣言ルール。コアが解釈するのでブラウザ・CLI・CI のどこでも動く。",
+          "type": "string",
+          "const": "rules"
+        },
+        {
+          "description": "v1: 1 つのファイルにまとめたスクリプトを、サンドボックス化した iframe の中の Web Worker で実行する。ブラウザのみ。",
+          "type": "string",
+          "const": "browser"
+        },
+        {
+          "description": "v2: WASM Component。ブラウザ・CLI・サーバで動く。",
+          "type": "string",
+          "const": "wasm-component"
+        }
+      ]
+    },
+    "View": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "label": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "label"
+      ]
+    }
+  }
+}

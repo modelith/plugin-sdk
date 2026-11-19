@@ -1,0 +1,8 @@
+rules:
+  - id: req-has-satisfier
+    severity: warning
+    message: "Nothing satisfies requirement {name}"
+    match:
+      kind: requirement def
+    require:
+      incoming: satisfy

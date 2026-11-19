@@ -1,0 +1,14 @@
+{
+  "name": "@modelith/plugin-sdk-harness-tests",
+  "private": true,
+  "description": "Tests for the agent harness (scripts/, .claude/hooks/)",
+  "license": "MIT",
+  "scripts": {
+    "unit": "bats unit",
+    "integration": "bats integration",
+    "system": "bats system"
+  },
+  "devDependencies": {
+    "bats": "^1.13.0"
+  }
+}

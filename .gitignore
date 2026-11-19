@@ -147,3 +147,10 @@ vite.config.ts.timestamp-*
 
 # Turbo Repo
 .turbo
+
+# Rust
+target/
+
+# build outputs of packages/typescript
+packages/typescript/dist/
+packages/typescript/schema/
