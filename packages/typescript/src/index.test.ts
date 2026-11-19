@@ -201,6 +201,8 @@ describe("usage report schema", () => {
     ["a frame line at the maximum", "error", { frames: [{ module: "assets/a.js", line: 10_000_000 }] }, true],
     ["a frame line over the maximum", "error", { frames: [{ module: "assets/a.js", line: 10_000_001 }] }, false],
     ["a module path over 120 characters", "error", { frames: [{ module: "a".repeat(121) }] }, false],
+    ["a first quarter", "daily", { firstQuarter: "2026-Q1" }, true],
+    ["a first month instead of a quarter", "daily", { firstQuarter: "2026-10" }, false],
     ["an appVersion over 32 characters", "startup", { appVersion: `1.0.0-${"a".repeat(27)}` }, false],
   ])("%s is valid: %s", (_: string, kind: string, change: object, expected: boolean) => {
     // Arrange（境界値・異常系）

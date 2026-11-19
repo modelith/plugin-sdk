@@ -365,13 +365,13 @@
             "svg": 0
           }
         },
-        "firstMonth": {
-          "description": "このブラウザで初めて使った月（`YYYY-MM`）。四半期に粗くするかは未決。",
+        "firstQuarter": {
+          "description": "このブラウザで初めて使った四半期（`YYYY-Qn`。例: `2026-Q4`）。端末の手がかりにならないよう、月より粗くする。",
           "type": [
             "string",
             "null"
           ],
-          "pattern": "^\\d{4}-(0[1-9]|1[0-2])$"
+          "pattern": "^\\d{4}-Q[1-4]$"
         },
         "layout": {
           "description": "図の見た目だけを変える操作の回数（モデルは変わらない）。",
@@ -401,13 +401,10 @@
           },
           "maxItems": 20
         },
-        "plugins": {
-          "description": "プラグインの利用。",
-          "$ref": "#/$defs/PluginUsage",
-          "default": {
-            "listed": [],
-            "unlisted": 0
-          }
+        "pluginUses": {
+          "description": "プラグインの機能（チェック・コマンド・エクスポートなど）を使った回数。どのプラグインかは送らない\n（公開の登録簿ができるまで名前を入れない。入れるときは任意の項目として足す）。",
+          "$ref": "#/$defs/Count",
+          "default": 0
         },
         "saves": {
           "description": "保存先ごとの保存の回数。",
@@ -429,7 +426,7 @@
           "default": 0
         },
         "weeksUsed": {
-          "description": "このブラウザで使った週の数の区分（ID を持たずに、続けて使われているかを測る）。区分の粗さは未決。",
+          "description": "このブラウザで使った週の数の区分（ID を持たずに、続けて使われているかを測る）。",
           "anyOf": [
             {
               "$ref": "#/$defs/WeeksClass"
@@ -886,45 +883,6 @@
         "fileSize",
         "duration",
         "count"
-      ]
-    },
-    "PluginId": {
-      "description": "Reverse-domain plugin id, e.g. \"com.example.my-plugin\".",
-      "type": "string",
-      "pattern": "^[a-z][a-z0-9-]*(\\.[a-z][a-z0-9-]*)+$"
-    },
-    "PluginUsage": {
-      "description": "プラグインの利用。公開の登録簿にあるものだけ ID を送り、それ以外は回数だけを `unlisted` に足す。",
-      "type": "object",
-      "properties": {
-        "listed": {
-          "type": "array",
-          "default": [],
-          "items": {
-            "$ref": "#/$defs/PluginUse"
-          },
-          "maxItems": 50
-        },
-        "unlisted": {
-          "$ref": "#/$defs/Count",
-          "default": 0
-        }
-      }
-    },
-    "PluginUse": {
-      "type": "object",
-      "properties": {
-        "id": {
-          "description": "公開の登録簿にあるプラグインの ID。",
-          "$ref": "#/$defs/PluginId"
-        },
-        "uses": {
-          "$ref": "#/$defs/Count"
-        }
-      },
-      "required": [
-        "id",
-        "uses"
       ]
     },
     "Saves": {

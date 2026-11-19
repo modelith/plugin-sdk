@@ -28,7 +28,7 @@ The first release.
   `plugin-message`, `registry-entry` and `usage-report`.
 - The usage report sent by the Modelith app and server when the user allows it (Modelith's ADR-0026): `UsageReport`
   (`kind`: `startup`, `daily`, `error`, `serverDaily`), carrying `schemaVersion` (`USAGE_SCHEMA_VERSION`) and the sender
-  (`client`, `appVersion`, `channel`). Values are fixed words, classes or counts up to `COUNT_MAX`, never free text.
+  (`client`, `appVersion`, `channel`). Values are fixed words, classes or counts up to `COUNT_MAX`, never free text, and plugins are counted without their names.
   `usage-report.schema.json` annotates each report with `x-modelith-when`, `x-modelith-level` and `x-modelith-max-bytes`,
   and the sender fields with `x-modelith-dimension`. Unknown fields are ignored.
 - `@modelith/plugin-sdk`: the generated TypeScript types, `connectToHost` for talking to Modelith from a Web Worker,

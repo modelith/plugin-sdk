@@ -32,7 +32,7 @@
     "saves": { "draft": 15, "download": 0, "folder": 6 },
     "exports": { "svg": 1, "png": 0, "jpeg": 0, "drawio": 2, "clipboard": 3 },
     "checks": { "runs": 9, "noProblems": 3, "problems1To9": 5, "problems10To99": 1, "problems100OrMore": 0 },
-    "plugins": { "listed": [{ "id": "io.modelith.ports-check", "uses": 9 }], "unlisted": 4 },
+    "pluginUses": 13,
     "aiRewrites": 2,
     "parseTimes": [
       { "fileSize": "lt10kb", "duration": "lt100ms", "count": 40 },
@@ -41,7 +41,7 @@
     "wasmLoadFailures": 0,
     "workerRestarts": 1,
     "weeksUsed": "2to4",
-    "firstMonth": "2026-10"
+    "firstQuarter": "2026-Q4"
   },
   {
     "kind": "error",

@@ -2,7 +2,7 @@
 //!
 //! 送る本文は `kind` で区別する 4 種類で、1 回の要求に 1 つ送る。どれも `schemaVersion` に [`USAGE_SCHEMA_VERSION`] を載せる。
 //! 値は、決まった語（列挙）・区分（境目を doc に書いた列挙）・上限つきの回数（[`Count`]）のどれかで、自由な文字列は受けない
-//! （例外は、形と長さを正規表現で決めた版・年月・ID・コードの場所と、公開の登録簿にあるプラグインの ID）。
+//! （例外は、形と長さを正規表現で決めた版・四半期・ID・コードの場所）。プラグインの名前は送らない。
 //! モデルの中身・要素やファイルの名前・エラーの文・端末に残す ID・日時は、どの本文にも入らない（ADR-0026 の 2）。
 //! 受け口は受け取った日（UTC）で足し込む。
 //!
@@ -17,8 +17,6 @@
 //! この型は送り手に向けて厳しく、知らない列挙の値も拒む。受け口は、知らない値の項目だけを捨ててもよい。
 
 use serde::{Deserialize, Serialize};
-
-use crate::PluginId;
 
 /// 利用状況の本文の形の版。項目を足す・変えるたびに 1 つ上げ、受け手は古い版の本文を見分ける。
 pub const USAGE_SCHEMA_VERSION: u32 = 1;
@@ -130,9 +128,10 @@ pub struct DailyReport {
     /// チェックの実行。
     #[serde(default)]
     pub checks: Checks,
-    /// プラグインの利用。
+    /// プラグインの機能（チェック・コマンド・エクスポートなど）を使った回数。どのプラグインかは送らない
+    /// （公開の登録簿ができるまで名前を入れない。入れるときは任意の項目として足す）。
     #[serde(default)]
-    pub plugins: PluginUsage,
+    pub plugin_uses: Count,
     /// AI による書き換え（MCP）の回数。アプリが数えられるのは modelith 0.4.0 から。
     #[serde(default)]
     pub ai_rewrites: Count,
@@ -146,18 +145,15 @@ pub struct DailyReport {
     /// コアを動かす Worker が止まり、作り直した回数。
     #[serde(default)]
     pub worker_restarts: Count,
-    /// このブラウザで使った週の数の区分（ID を持たずに、続けて使われているかを測る）。区分の粗さは未決。
+    /// このブラウザで使った週の数の区分（ID を持たずに、続けて使われているかを測る）。
     #[serde(default, skip_serializing_if = "Option::is_none")]
     #[cfg_attr(feature = "codegen", ts(optional))]
     pub weeks_used: Option<WeeksClass>,
-    /// このブラウザで初めて使った月（`YYYY-MM`）。四半期に粗くするかは未決。
+    /// このブラウザで初めて使った四半期（`YYYY-Qn`。例: `2026-Q4`）。端末の手がかりにならないよう、月より粗くする。
     #[serde(default, skip_serializing_if = "Option::is_none")]
-    #[cfg_attr(
-        feature = "codegen",
-        schemars(regex(pattern = r"^\d{4}-(0[1-9]|1[0-2])$"))
-    )]
+    #[cfg_attr(feature = "codegen", schemars(regex(pattern = r"^\d{4}-Q[1-4]$")))]
     #[cfg_attr(feature = "codegen", ts(optional))]
-    pub first_month: Option<String>,
+    pub first_quarter: Option<String>,
 }
 
 /// エラーの報告。エラーの文と利用者の文字は含めず、種類と自分たちのコードの場所だけを送る。
@@ -411,25 +407,6 @@ pub struct Checks {
     pub problems_10_to_99: Count,
     /// 100 件以上だった回数。
     pub problems_100_or_more: Count,
-}
-
-/// プラグインの利用。公開の登録簿にあるものだけ ID を送り、それ以外は回数だけを `unlisted` に足す。
-#[derive(Debug, Clone, PartialEq, Eq, Default, Serialize, Deserialize)]
-#[cfg_attr(feature = "codegen", derive(schemars::JsonSchema, ts_rs::TS))]
-#[serde(rename_all = "camelCase", default)]
-pub struct PluginUsage {
-    #[cfg_attr(feature = "codegen", schemars(length(max = 50)))]
-    pub listed: Vec<PluginUse>,
-    pub unlisted: Count,
-}
-
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
-#[cfg_attr(feature = "codegen", derive(schemars::JsonSchema, ts_rs::TS))]
-#[serde(rename_all = "camelCase")]
-pub struct PluginUse {
-    /// 公開の登録簿にあるプラグインの ID。
-    pub id: PluginId,
-    pub uses: Count,
 }
 
 /// 解析の時間の区分ごとの回数（ファイルの大きさ × 時間を 1 つの項目として数える）。
@@ -794,7 +771,7 @@ mod tests {
             panic!("not daily")
         };
         assert_eq!(
-            (daily.edits, daily.exports.clipboard, daily.plugins.unlisted),
+            (daily.edits, daily.exports.clipboard, daily.plugin_uses),
             (Edits::default(), Count::default(), Count::default())
         );
     }
@@ -915,16 +892,6 @@ mod tests {
         let json = with(startup(), "kind", json!("pageView"));
         // Act
         let result = serde_json::from_value::<UsageReport>(json);
-        // Assert
-        assert!(result.is_err());
-    }
-
-    #[test]
-    fn rejects_an_invalid_plugin_id() {
-        // Arrange（登録簿の ID の形でない名前）
-        let json = json!({ "id": "My Plugin", "uses": 1 });
-        // Act
-        let result = serde_json::from_value::<PluginUse>(json);
         // Assert
         assert!(result.is_err());
     }

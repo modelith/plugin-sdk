@@ -450,14 +450,6 @@ problems10To99: Count,
  */
 problems100OrMore: Count, };
 
-export type PluginUse = { 
-/**
- * 公開の登録簿にあるプラグインの ID。
- */
-id: PluginId, uses: Count, };
-
-export type PluginUsage = { listed: Array<PluginUse>, unlisted: Count, };
-
 export type ParseTime = { fileSize: SizeClass, duration: ParseDurationClass, count: Count, };
 
 export type StackFrame = { 
@@ -534,9 +526,10 @@ exports: Exports,
  */
 checks: Checks, 
 /**
- * プラグインの利用。
+ * プラグインの機能（チェック・コマンド・エクスポートなど）を使った回数。どのプラグインかは送らない
+ * （公開の登録簿ができるまで名前を入れない。入れるときは任意の項目として足す）。
  */
-plugins: PluginUsage, 
+pluginUses: Count, 
 /**
  * AI による書き換え（MCP）の回数。アプリが数えられるのは modelith 0.4.0 から。
  */
@@ -554,13 +547,13 @@ wasmLoadFailures: Count,
  */
 workerRestarts: Count, 
 /**
- * このブラウザで使った週の数の区分（ID を持たずに、続けて使われているかを測る）。区分の粗さは未決。
+ * このブラウザで使った週の数の区分（ID を持たずに、続けて使われているかを測る）。
  */
 weeksUsed?: WeeksClass, 
 /**
- * このブラウザで初めて使った月（`YYYY-MM`）。四半期に粗くするかは未決。
+ * このブラウザで初めて使った四半期（`YYYY-Qn`。例: `2026-Q4`）。端末の手がかりにならないよう、月より粗くする。
  */
-firstMonth?: string, client: Client, 
+firstQuarter?: string, client: Client, 
 /**
  * 送り手の版（SemVer。例: `0.2.0-rc.1`）。
  */
