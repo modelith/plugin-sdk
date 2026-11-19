@@ -8,7 +8,7 @@ Before 1.0.0 (`apiVersion` `"0"`), any release may change the contract.
 
 ## [Unreleased]
 
-## [0.1.0] - Unreleased
+## [0.1.0] - 2026-11-19
 
 The first release.
 
