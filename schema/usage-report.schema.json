@@ -682,7 +682,7 @@
           "$ref": "#/$defs/ErrorName"
         },
         "frames": {
-          "description": "スタックトレース（内側から外側へ）。",
+          "description": "スタックトレース（内側から外側へ）。送り手は、自分たちの配信物（アプリの `assets/` の JS と wasm）の段だけを入れ、\nプラグインやブラウザの拡張など、ほかのコードの段は送らない（受け口は `module` の形しか確かめられない）。",
           "type": "array",
           "items": {
             "$ref": "#/$defs/StackFrame"
