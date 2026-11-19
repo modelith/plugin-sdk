@@ -5,7 +5,7 @@ export const API_VERSION = "0";
 export const PLUGIN_ID_PATTERN = "^[a-z][a-z0-9-]*(\\.[a-z][a-z0-9-]*)+$";
 export const RULE_ID_PATTERN = "^[a-z0-9][a-z0-9-]*$";
 export const USAGE_SCHEMA_VERSION = 1;
-export const COUNT_MAX = 1000000;
+export const COUNT_MAX = 10000;
 
 export type PluginId = string;
 
@@ -288,11 +288,15 @@ export type Count = number;
 
 export type Channel = "stable" | "rc" | "preview";
 
-export type AppInfo = { 
+export type Client = "web" | "server";
+
+export type Sender = { client: Client, 
 /**
- * アプリの版（SemVer）。
+ * 送り手の版（SemVer。例: `0.2.0-rc.1`）。
  */
-version: string, channel: Channel, };
+appVersion: string, channel: Channel, };
+
+export type SendLevel = "all" | "errorsOnly";
 
 export type Browser = "chrome" | "edge" | "firefox" | "safari" | "other";
 
@@ -320,19 +324,101 @@ export type Login = "accounts" | "oidc";
 
 export type ErrorKind = "uncaughtError" | "unhandledRejection" | "wasmPanic";
 
-export type DiagramViews = { trace: Count, structure: Count, control: Count, ibd: Count, behavior: Count, seq: Count, afv: Count, stm: Count, all: Count, };
-
-export type Edits = { 
+export type AutoViews = { 
 /**
- * 要素の追加。
+ * トレーサビリティ。
  */
-add: Count, 
+trace: Count, 
 /**
- * 関係の追加。
+ * ブロック定義図。
  */
-relate: Count, rename: Count, delete: Count, undo: Count, };
+structure: Count, 
+/**
+ * 制御ループ。
+ */
+control: Count, 
+/**
+ * 内部ブロック図。
+ */
+ibd: Count, 
+/**
+ * 振る舞い。
+ */
+behavior: Count, 
+/**
+ * シーケンス図。
+ */
+seq: Count, 
+/**
+ * アクティビティ図。
+ */
+afv: Count, 
+/**
+ * 状態遷移図。
+ */
+stm: Count, 
+/**
+ * すべて。
+ */
+all: Count, };
 
-export type Exports = { svg: Count, png: Count, jpeg: Count, drawio: Count, };
+export type CreatedViews = { 
+/**
+ * GeneralView。
+ */
+general: Count, 
+/**
+ * InterconnectionView（内部ブロック図）。
+ */
+interconnection: Count, 
+/**
+ * ActionFlowView（アクティビティ図）。
+ */
+actionFlow: Count, 
+/**
+ * StateTransitionView（状態遷移図）。
+ */
+stateTransition: Count, 
+/**
+ * SequenceView（シーケンス図）。
+ */
+sequence: Count, };
+
+export type Edits = { addNode: Count, addUsage: Count, rename: Count, delete: Count, deleteEdge: Count, connect: Count, addMessage: Count, updateMessage: Count, moveMessage: Count, setPhase: Count, initPhases: Count, makePort: Count, setPortDir: Count, deletePort: Count, saveView: Count, addToView: Count, removeFromView: Count, renameView: Count, deleteView: Count, setAttribute: Count, removeAttribute: Count, setDoc: Count, undo: Count, redo: Count, };
+
+export type Layout = { 
+/**
+ * 要素の移動。
+ */
+move: Count, 
+/**
+ * 線の調整。
+ */
+adjustEdge: Count, 
+/**
+ * 整列。
+ */
+align: Count, };
+
+export type Saves = { 
+/**
+ * ブラウザの下書き。
+ */
+draft: Count, 
+/**
+ * ダウンロード。
+ */
+download: Count, 
+/**
+ * 手元のフォルダ（File System Access）。
+ */
+folder: Count, };
+
+export type Exports = { svg: Count, png: Count, jpeg: Count, drawio: Count, 
+/**
+ * 画像のコピー。
+ */
+clipboard: Count, };
 
 export type Checks = { runs: Count, 
 /**
@@ -364,37 +450,61 @@ export type ParseTime = { fileSize: SizeClass, duration: DurationClass, count: C
 
 export type StackFrame = { 
 /**
- * アプリの組み立て物の中のファイル（例: `assets/index-3f2a.js`）。利用者のファイルの名前は入らない。
+ * 配信しているアプリのファイル（例: `assets/index-3f2a.js`）。利用者のファイルの名前は入らない。
  */
-module: string, line: number, column: number, };
+module: string, 
+/**
+ * 関数の名前（wasm の中のコアの関数など、自分たちのコードのもの）。
+ */
+function?: string, line: number, column: number, };
 
-export type StartupReport = { schemaVersion: number, app: AppInfo, browser: Browser, os: Os, 
+export type StartupReport = { schemaVersion: number, browser: Browser, os: Os, 
 /**
  * 画面の幅の区分。
  */
 screen: ScreenClass, 
 /**
- * 画面の表示の言語。
+ * 画面の表示の言語（BCP 47 の言語の部分）。
  */
 language: Language, 
 /**
+ * 手元のフォルダを開けるブラウザか（File System Access）。
+ */
+folderAccess: boolean, 
+/**
  * 起動にかかった時間の区分。
  */
-startupTime: DurationClass, };
+startupTime: DurationClass, client: Client, 
+/**
+ * 送り手の版（SemVer。例: `0.2.0-rc.1`）。
+ */
+appVersion: string, channel: Channel, };
 
-export type DailyReport = { schemaVersion: number, app: AppInfo, 
+export type DailyReport = { schemaVersion: number, 
 /**
  * その日に初めて起きた、使い始めの段階（同じ段階は 1 回だけ）。
  */
 onboarding: Array<OnboardingStep>, 
 /**
- * 図の種類ごとの表示の回数。
+ * 自動の図の種類ごとの表示の回数。
  */
-diagramViews: DiagramViews, 
+autoViews: AutoViews, 
 /**
- * 操作の回数。
+ * 作成した図（view）の種類ごとの表示の回数。
+ */
+createdViews: CreatedViews, 
+/**
+ * 編集の意図（modelith-core の `Intent` の op）ごとの回数と、元に戻す・やり直す。
  */
 edits: Edits, 
+/**
+ * 図の見た目だけを変える操作の回数（モデルは変わらない）。
+ */
+layout: Layout, 
+/**
+ * 保存先ごとの保存の回数。
+ */
+saves: Saves, 
 /**
  * エクスポートの形式ごとの回数。
  */
@@ -426,23 +536,31 @@ weeksUsed: WeeksClass,
 /**
  * このブラウザで初めて使った月（`YYYY-MM`）。
  */
-firstMonth: string, };
+firstMonth: string, client: Client, 
+/**
+ * 送り手の版（SemVer。例: `0.2.0-rc.1`）。
+ */
+appVersion: string, channel: Channel, };
 
-export type ErrorReport = { schemaVersion: number, app: AppInfo, kind: ErrorKind, 
+export type ErrorReport = { schemaVersion: number, 
+/**
+ * 送る段階（「すべて送る」と「エラーだけ」の比を数える）。
+ */
+level: SendLevel, errorKind: ErrorKind, 
 /**
  * スタックトレース（内側から外側へ）。
  */
-frames: Array<StackFrame>, };
+frames: Array<StackFrame>, client: Client, 
+/**
+ * 送り手の版（SemVer。例: `0.2.0-rc.1`）。
+ */
+appVersion: string, channel: Channel, };
 
 export type ServerDailyReport = { schemaVersion: number, 
 /**
- * 起動ごとに作るランダムな ID（UUID）。端末やサーバに残す ID ではない。
+ * 起動ごとに作るランダムな ID（UUID）。サーバに残す ID ではない。
  */
-instanceId: string, 
-/**
- * サーバの版（SemVer）。
- */
-version: string, os: Os, deployment: Deployment, login: Login, 
+instanceId: string, os: Os, deployment: Deployment, login: Login, 
 /**
  * 利用者の数の区分。
  */
@@ -462,6 +580,10 @@ storage: StorageClass,
 /**
  * プラグインの数の区分。
  */
-plugins: AmountClass, };
+plugins: AmountClass, client: Client, 
+/**
+ * 送り手の版（SemVer。例: `0.2.0-rc.1`）。
+ */
+appVersion: string, channel: Channel, };
 
-export type UsageReport = { "type": "startup" } & StartupReport | { "type": "daily" } & DailyReport | { "type": "error" } & ErrorReport | { "type": "serverDaily" } & ServerDailyReport;
+export type UsageReport = { "kind": "startup" } & StartupReport | { "kind": "daily" } & DailyReport | { "kind": "error" } & ErrorReport | { "kind": "serverDaily" } & ServerDailyReport;

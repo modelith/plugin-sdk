@@ -7,64 +7,68 @@
       "description": "ブラウザのアプリを起動したとき。",
       "type": "object",
       "properties": {
-        "type": {
+        "kind": {
           "type": "string",
           "const": "startup"
         }
       },
       "$ref": "#/$defs/StartupReport",
       "required": [
-        "type"
+        "kind"
       ],
       "x-modelith-level": "all",
+      "x-modelith-max-bytes": 1024,
       "x-modelith-when": "startup"
     },
     {
-      "description": "ブラウザのアプリの、日に 1 回のまとめ（手元で足し込んだ回数）。",
+      "description": "ブラウザのアプリの、日に 1 回のまとめ（手元で足し込んだ回数。送れたら手元の足し込みを消す）。",
       "type": "object",
       "properties": {
-        "type": {
+        "kind": {
           "type": "string",
           "const": "daily"
         }
       },
       "$ref": "#/$defs/DailyReport",
       "required": [
-        "type"
+        "kind"
       ],
       "x-modelith-level": "all",
+      "x-modelith-max-bytes": 8192,
       "x-modelith-when": "daily"
     },
     {
       "description": "ブラウザのアプリでエラーが起きたとき（すぐ送る）。",
       "type": "object",
       "properties": {
-        "type": {
+        "kind": {
           "type": "string",
           "const": "error"
         }
       },
       "$ref": "#/$defs/ErrorReport",
       "required": [
-        "type"
+        "kind"
       ],
       "x-modelith-level": "error",
+      "x-modelith-max-bytes": 4096,
       "x-modelith-when": "error"
     },
     {
       "description": "自分で動かすサーバの、日に 1 回のまとめ。",
       "type": "object",
       "properties": {
-        "type": {
+        "kind": {
           "type": "string",
           "const": "serverDaily"
         }
       },
       "$ref": "#/$defs/ServerDailyReport",
       "required": [
-        "type"
+        "kind"
       ],
       "x-modelith-level": "all",
+      "x-modelith-max-bytes": 2048,
       "x-modelith-when": "daily"
     }
   ],
@@ -101,23 +105,56 @@
         }
       ]
     },
-    "AppInfo": {
-      "description": "アプリの版と系列。",
+    "AutoViews": {
+      "description": "自動の図の種類ごとの回数（アプリの自動の図の id ごと）。",
       "type": "object",
       "properties": {
-        "channel": {
-          "$ref": "#/$defs/Channel"
+        "afv": {
+          "description": "アクティビティ図。",
+          "$ref": "#/$defs/Count",
+          "default": 0
         },
-        "version": {
-          "description": "アプリの版（SemVer）。",
-          "type": "string",
-          "pattern": "^\\d+\\.\\d+\\.\\d+(-[0-9A-Za-z.-]+)?$"
+        "all": {
+          "description": "すべて。",
+          "$ref": "#/$defs/Count",
+          "default": 0
+        },
+        "behavior": {
+          "description": "振る舞い。",
+          "$ref": "#/$defs/Count",
+          "default": 0
+        },
+        "control": {
+          "description": "制御ループ。",
+          "$ref": "#/$defs/Count",
+          "default": 0
+        },
+        "ibd": {
+          "description": "内部ブロック図。",
+          "$ref": "#/$defs/Count",
+          "default": 0
+        },
+        "seq": {
+          "description": "シーケンス図。",
+          "$ref": "#/$defs/Count",
+          "default": 0
+        },
+        "stm": {
+          "description": "状態遷移図。",
+          "$ref": "#/$defs/Count",
+          "default": 0
+        },
+        "structure": {
+          "description": "ブロック定義図。",
+          "$ref": "#/$defs/Count",
+          "default": 0
+        },
+        "trace": {
+          "description": "トレーサビリティ。",
+          "$ref": "#/$defs/Count",
+          "default": 0
         }
-      },
-      "required": [
-        "version",
-        "channel"
-      ]
+      }
     },
     "Browser": {
       "type": "string",
@@ -168,13 +205,60 @@
         }
       }
     },
+    "Client": {
+      "description": "送り手のプログラム。",
+      "oneOf": [
+        {
+          "description": "ブラウザのアプリ。",
+          "type": "string",
+          "const": "web"
+        },
+        {
+          "description": "自分で動かすサーバ。",
+          "type": "string",
+          "const": "server"
+        }
+      ]
+    },
     "Count": {
-      "description": "A count from 0 up to the maximum.",
+      "description": "A count from 0 up to the maximum. Senders cap larger counts at the maximum.",
       "type": "integer",
-      "maximum": 1000000,
+      "maximum": 10000,
       "minimum": 0
     },
+    "CreatedViews": {
+      "description": "作成した図（SysML v2 の view の種類）ごとの回数。",
+      "type": "object",
+      "properties": {
+        "actionFlow": {
+          "description": "ActionFlowView（アクティビティ図）。",
+          "$ref": "#/$defs/Count",
+          "default": 0
+        },
+        "general": {
+          "description": "GeneralView。",
+          "$ref": "#/$defs/Count",
+          "default": 0
+        },
+        "interconnection": {
+          "description": "InterconnectionView（内部ブロック図）。",
+          "$ref": "#/$defs/Count",
+          "default": 0
+        },
+        "sequence": {
+          "description": "SequenceView（シーケンス図）。",
+          "$ref": "#/$defs/Count",
+          "default": 0
+        },
+        "stateTransition": {
+          "description": "StateTransitionView（状態遷移図）。",
+          "$ref": "#/$defs/Count",
+          "default": 0
+        }
+      }
+    },
     "DailyReport": {
+      "description": "日に 1 回のまとめ。",
       "type": "object",
       "properties": {
         "aiRewrites": {
@@ -182,23 +266,16 @@
           "$ref": "#/$defs/Count",
           "default": 0
         },
-        "app": {
-          "$ref": "#/$defs/AppInfo"
+        "appVersion": {
+          "description": "送り手の版（SemVer。例: `0.2.0-rc.1`）。",
+          "type": "string",
+          "maxLength": 64,
+          "pattern": "^\\d+\\.\\d+\\.\\d+(-[0-9A-Za-z.-]+)?$",
+          "x-modelith-dimension": true
         },
-        "checks": {
-          "description": "チェックの実行。",
-          "$ref": "#/$defs/Checks",
-          "default": {
-            "noProblems": 0,
-            "problems100OrMore": 0,
-            "problems10To99": 0,
-            "problems1To9": 0,
-            "runs": 0
-          }
-        },
-        "diagramViews": {
-          "description": "図の種類ごとの表示の回数。",
-          "$ref": "#/$defs/DiagramViews",
+        "autoViews": {
+          "description": "自動の図の種類ごとの表示の回数。",
+          "$ref": "#/$defs/AutoViews",
           "default": {
             "afv": 0,
             "all": 0,
@@ -211,21 +288,71 @@
             "trace": 0
           }
         },
+        "channel": {
+          "$ref": "#/$defs/Channel",
+          "x-modelith-dimension": true
+        },
+        "checks": {
+          "description": "チェックの実行。",
+          "$ref": "#/$defs/Checks",
+          "default": {
+            "noProblems": 0,
+            "problems100OrMore": 0,
+            "problems10To99": 0,
+            "problems1To9": 0,
+            "runs": 0
+          }
+        },
+        "client": {
+          "$ref": "#/$defs/Client",
+          "x-modelith-dimension": true
+        },
+        "createdViews": {
+          "description": "作成した図（view）の種類ごとの表示の回数。",
+          "$ref": "#/$defs/CreatedViews",
+          "default": {
+            "actionFlow": 0,
+            "general": 0,
+            "interconnection": 0,
+            "sequence": 0,
+            "stateTransition": 0
+          }
+        },
         "edits": {
-          "description": "操作の回数。",
+          "description": "編集の意図（modelith-core の `Intent` の op）ごとの回数と、元に戻す・やり直す。",
           "$ref": "#/$defs/Edits",
           "default": {
-            "add": 0,
+            "addMessage": 0,
+            "addNode": 0,
+            "addToView": 0,
+            "addUsage": 0,
+            "connect": 0,
             "delete": 0,
-            "relate": 0,
+            "deleteEdge": 0,
+            "deletePort": 0,
+            "deleteView": 0,
+            "initPhases": 0,
+            "makePort": 0,
+            "moveMessage": 0,
+            "redo": 0,
+            "removeAttribute": 0,
+            "removeFromView": 0,
             "rename": 0,
-            "undo": 0
+            "renameView": 0,
+            "saveView": 0,
+            "setAttribute": 0,
+            "setDoc": 0,
+            "setPhase": 0,
+            "setPortDir": 0,
+            "undo": 0,
+            "updateMessage": 0
           }
         },
         "exports": {
           "description": "エクスポートの形式ごとの回数。",
           "$ref": "#/$defs/Exports",
           "default": {
+            "clipboard": 0,
             "drawio": 0,
             "jpeg": 0,
             "png": 0,
@@ -236,6 +363,15 @@
           "description": "このブラウザで初めて使った月（`YYYY-MM`）。",
           "type": "string",
           "pattern": "^\\d{4}-(0[1-9]|1[0-2])$"
+        },
+        "layout": {
+          "description": "図の見た目だけを変える操作の回数（モデルは変わらない）。",
+          "$ref": "#/$defs/Layout",
+          "default": {
+            "adjustEdge": 0,
+            "align": 0,
+            "move": 0
+          }
         },
         "onboarding": {
           "description": "その日に初めて起きた、使い始めの段階（同じ段階は 1 回だけ）。",
@@ -263,6 +399,15 @@
             "unlisted": 0
           }
         },
+        "saves": {
+          "description": "保存先ごとの保存の回数。",
+          "$ref": "#/$defs/Saves",
+          "default": {
+            "download": 0,
+            "draft": 0,
+            "folder": 0
+          }
+        },
         "schemaVersion": {
           "type": "integer",
           "format": "uint32",
@@ -280,7 +425,9 @@
       },
       "required": [
         "schemaVersion",
-        "app",
+        "client",
+        "appVersion",
+        "channel",
         "weeksUsed",
         "firstMonth"
       ]
@@ -292,48 +439,6 @@
         "docker",
         "binary"
       ]
-    },
-    "DiagramViews": {
-      "description": "図の種類ごとの回数（アプリの自動の図の id ごと）。",
-      "type": "object",
-      "properties": {
-        "afv": {
-          "$ref": "#/$defs/Count",
-          "default": 0
-        },
-        "all": {
-          "$ref": "#/$defs/Count",
-          "default": 0
-        },
-        "behavior": {
-          "$ref": "#/$defs/Count",
-          "default": 0
-        },
-        "control": {
-          "$ref": "#/$defs/Count",
-          "default": 0
-        },
-        "ibd": {
-          "$ref": "#/$defs/Count",
-          "default": 0
-        },
-        "seq": {
-          "$ref": "#/$defs/Count",
-          "default": 0
-        },
-        "stm": {
-          "$ref": "#/$defs/Count",
-          "default": 0
-        },
-        "structure": {
-          "$ref": "#/$defs/Count",
-          "default": 0
-        },
-        "trace": {
-          "$ref": "#/$defs/Count",
-          "default": 0
-        }
-      }
     },
     "DurationClass": {
       "description": "かかった時間の区分。",
@@ -361,11 +466,26 @@
       ]
     },
     "Edits": {
-      "description": "操作の回数。",
+      "description": "編集の回数。名前は modelith-core の `Intent` の op と同じ。",
       "type": "object",
       "properties": {
-        "add": {
-          "description": "要素の追加。",
+        "addMessage": {
+          "$ref": "#/$defs/Count",
+          "default": 0
+        },
+        "addNode": {
+          "$ref": "#/$defs/Count",
+          "default": 0
+        },
+        "addToView": {
+          "$ref": "#/$defs/Count",
+          "default": 0
+        },
+        "addUsage": {
+          "$ref": "#/$defs/Count",
+          "default": 0
+        },
+        "connect": {
           "$ref": "#/$defs/Count",
           "default": 0
         },
@@ -373,8 +493,39 @@
           "$ref": "#/$defs/Count",
           "default": 0
         },
-        "relate": {
-          "description": "関係の追加。",
+        "deleteEdge": {
+          "$ref": "#/$defs/Count",
+          "default": 0
+        },
+        "deletePort": {
+          "$ref": "#/$defs/Count",
+          "default": 0
+        },
+        "deleteView": {
+          "$ref": "#/$defs/Count",
+          "default": 0
+        },
+        "initPhases": {
+          "$ref": "#/$defs/Count",
+          "default": 0
+        },
+        "makePort": {
+          "$ref": "#/$defs/Count",
+          "default": 0
+        },
+        "moveMessage": {
+          "$ref": "#/$defs/Count",
+          "default": 0
+        },
+        "redo": {
+          "$ref": "#/$defs/Count",
+          "default": 0
+        },
+        "removeAttribute": {
+          "$ref": "#/$defs/Count",
+          "default": 0
+        },
+        "removeFromView": {
           "$ref": "#/$defs/Count",
           "default": 0
         },
@@ -382,7 +533,35 @@
           "$ref": "#/$defs/Count",
           "default": 0
         },
+        "renameView": {
+          "$ref": "#/$defs/Count",
+          "default": 0
+        },
+        "saveView": {
+          "$ref": "#/$defs/Count",
+          "default": 0
+        },
+        "setAttribute": {
+          "$ref": "#/$defs/Count",
+          "default": 0
+        },
+        "setDoc": {
+          "$ref": "#/$defs/Count",
+          "default": 0
+        },
+        "setPhase": {
+          "$ref": "#/$defs/Count",
+          "default": 0
+        },
+        "setPortDir": {
+          "$ref": "#/$defs/Count",
+          "default": 0
+        },
         "undo": {
+          "$ref": "#/$defs/Count",
+          "default": 0
+        },
+        "updateMessage": {
           "$ref": "#/$defs/Count",
           "default": 0
         }
@@ -409,11 +588,26 @@
       ]
     },
     "ErrorReport": {
-      "description": "エラーの報告。エラーの文と利用者の文字は含めず、種類とコードの場所だけを送る。",
+      "description": "エラーの報告。エラーの文と利用者の文字は含めず、種類と自分たちのコードの場所だけを送る。",
       "type": "object",
       "properties": {
-        "app": {
-          "$ref": "#/$defs/AppInfo"
+        "appVersion": {
+          "description": "送り手の版（SemVer。例: `0.2.0-rc.1`）。",
+          "type": "string",
+          "maxLength": 64,
+          "pattern": "^\\d+\\.\\d+\\.\\d+(-[0-9A-Za-z.-]+)?$",
+          "x-modelith-dimension": true
+        },
+        "channel": {
+          "$ref": "#/$defs/Channel",
+          "x-modelith-dimension": true
+        },
+        "client": {
+          "$ref": "#/$defs/Client",
+          "x-modelith-dimension": true
+        },
+        "errorKind": {
+          "$ref": "#/$defs/ErrorKind"
         },
         "frames": {
           "description": "スタックトレース（内側から外側へ）。",
@@ -421,10 +615,11 @@
           "items": {
             "$ref": "#/$defs/StackFrame"
           },
-          "maxItems": 50
+          "maxItems": 30
         },
-        "kind": {
-          "$ref": "#/$defs/ErrorKind"
+        "level": {
+          "description": "送る段階（「すべて送る」と「エラーだけ」の比を数える）。",
+          "$ref": "#/$defs/SendLevel"
         },
         "schemaVersion": {
           "type": "integer",
@@ -434,8 +629,11 @@
       },
       "required": [
         "schemaVersion",
-        "app",
-        "kind",
+        "client",
+        "appVersion",
+        "channel",
+        "level",
+        "errorKind",
         "frames"
       ]
     },
@@ -443,6 +641,11 @@
       "description": "エクスポートの形式ごとの回数。",
       "type": "object",
       "properties": {
+        "clipboard": {
+          "description": "画像のコピー。",
+          "$ref": "#/$defs/Count",
+          "default": 0
+        },
         "drawio": {
           "$ref": "#/$defs/Count",
           "default": 0
@@ -462,13 +665,34 @@
       }
     },
     "Language": {
-      "description": "画面の表示の言語。",
+      "description": "画面の表示の言語（modelith の ADR-0027）。",
       "type": "string",
       "enum": [
         "ja",
         "en",
         "other"
       ]
+    },
+    "Layout": {
+      "description": "図の見た目だけを変える操作の回数。",
+      "type": "object",
+      "properties": {
+        "adjustEdge": {
+          "description": "線の調整。",
+          "$ref": "#/$defs/Count",
+          "default": 0
+        },
+        "align": {
+          "description": "整列。",
+          "$ref": "#/$defs/Count",
+          "default": 0
+        },
+        "move": {
+          "description": "要素の移動。",
+          "$ref": "#/$defs/Count",
+          "default": 0
+        }
+      }
     },
     "Login": {
       "description": "サーバのログインの方式。",
@@ -509,7 +733,7 @@
       ]
     },
     "ParseTime": {
-      "description": "解析の時間の区分ごとの回数。",
+      "description": "解析の時間の区分ごとの回数（ファイルの大きさ × 時間を 1 つの項目として数える）。",
       "type": "object",
       "properties": {
         "count": {
@@ -567,6 +791,27 @@
         "uses"
       ]
     },
+    "Saves": {
+      "description": "保存先ごとの回数。",
+      "type": "object",
+      "properties": {
+        "download": {
+          "description": "ダウンロード。",
+          "$ref": "#/$defs/Count",
+          "default": 0
+        },
+        "draft": {
+          "description": "ブラウザの下書き。",
+          "$ref": "#/$defs/Count",
+          "default": 0
+        },
+        "folder": {
+          "description": "手元のフォルダ（File System Access）。",
+          "$ref": "#/$defs/Count",
+          "default": 0
+        }
+      }
+    },
     "ScreenClass": {
       "description": "画面の幅の区分。",
       "oneOf": [
@@ -587,18 +832,49 @@
         }
       ]
     },
+    "SendLevel": {
+      "description": "送る段階（modelith の ADR-0026 の 1）。「送らない」の人の分は届かない。",
+      "oneOf": [
+        {
+          "description": "すべて送る。",
+          "type": "string",
+          "const": "all"
+        },
+        {
+          "description": "エラーだけ送る。",
+          "type": "string",
+          "const": "errorsOnly"
+        }
+      ]
+    },
     "ServerDailyReport": {
+      "description": "サーバの日に 1 回のまとめ。",
       "type": "object",
       "properties": {
         "activeUsers7d": {
           "description": "7 日以内に使った人の数の区分。",
           "$ref": "#/$defs/AmountClass"
         },
+        "appVersion": {
+          "description": "送り手の版（SemVer。例: `0.2.0-rc.1`）。",
+          "type": "string",
+          "maxLength": 64,
+          "pattern": "^\\d+\\.\\d+\\.\\d+(-[0-9A-Za-z.-]+)?$",
+          "x-modelith-dimension": true
+        },
+        "channel": {
+          "$ref": "#/$defs/Channel",
+          "x-modelith-dimension": true
+        },
+        "client": {
+          "$ref": "#/$defs/Client",
+          "x-modelith-dimension": true
+        },
         "deployment": {
           "$ref": "#/$defs/Deployment"
         },
         "instanceId": {
-          "description": "起動ごとに作るランダムな ID（UUID）。端末やサーバに残す ID ではない。",
+          "description": "起動ごとに作るランダムな ID（UUID）。サーバに残す ID ではない。",
           "type": "string",
           "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
         },
@@ -628,17 +904,14 @@
         "users": {
           "description": "利用者の数の区分。",
           "$ref": "#/$defs/AmountClass"
-        },
-        "version": {
-          "description": "サーバの版（SemVer）。",
-          "type": "string",
-          "pattern": "^\\d+\\.\\d+\\.\\d+(-[0-9A-Za-z.-]+)?$"
         }
       },
       "required": [
         "schemaVersion",
+        "client",
+        "appVersion",
+        "channel",
         "instanceId",
-        "version",
         "os",
         "deployment",
         "login",
@@ -683,13 +956,21 @@
           "format": "uint32",
           "minimum": 0
         },
+        "function": {
+          "description": "関数の名前（wasm の中のコアの関数など、自分たちのコードのもの）。",
+          "type": [
+            "string",
+            "null"
+          ],
+          "pattern": "^[A-Za-z_$][A-Za-z0-9_$:<>.]{0,199}$"
+        },
         "line": {
           "type": "integer",
           "format": "uint32",
           "minimum": 0
         },
         "module": {
-          "description": "アプリの組み立て物の中のファイル（例: `assets/index-3f2a.js`）。利用者のファイルの名前は入らない。",
+          "description": "配信しているアプリのファイル（例: `assets/index-3f2a.js`）。利用者のファイルの名前は入らない。",
           "type": "string",
           "pattern": "^[A-Za-z0-9_][A-Za-z0-9_./-]{0,199}$"
         }
@@ -701,16 +982,33 @@
       ]
     },
     "StartupReport": {
+      "description": "起動の報告。",
       "type": "object",
       "properties": {
-        "app": {
-          "$ref": "#/$defs/AppInfo"
+        "appVersion": {
+          "description": "送り手の版（SemVer。例: `0.2.0-rc.1`）。",
+          "type": "string",
+          "maxLength": 64,
+          "pattern": "^\\d+\\.\\d+\\.\\d+(-[0-9A-Za-z.-]+)?$",
+          "x-modelith-dimension": true
         },
         "browser": {
           "$ref": "#/$defs/Browser"
         },
+        "channel": {
+          "$ref": "#/$defs/Channel",
+          "x-modelith-dimension": true
+        },
+        "client": {
+          "$ref": "#/$defs/Client",
+          "x-modelith-dimension": true
+        },
+        "folderAccess": {
+          "description": "手元のフォルダを開けるブラウザか（File System Access）。",
+          "type": "boolean"
+        },
         "language": {
-          "description": "画面の表示の言語。",
+          "description": "画面の表示の言語（BCP 47 の言語の部分）。",
           "$ref": "#/$defs/Language"
         },
         "os": {
@@ -732,11 +1030,14 @@
       },
       "required": [
         "schemaVersion",
-        "app",
+        "client",
+        "appVersion",
+        "channel",
         "browser",
         "os",
         "screen",
         "language",
+        "folderAccess",
         "startupTime"
       ]
     },

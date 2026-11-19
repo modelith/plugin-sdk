@@ -145,12 +145,12 @@ describe("JSON Schema accepts the shared examples", () => {
 
 describe("usage report schema", () => {
   const ajv = new Ajv2020.default({ strict: false });
-  const schema = readJson("schema/usage-report.schema.json") as { oneOf: { properties: { type: { const: string } } }[] };
+  const schema = readJson("schema/usage-report.schema.json") as { oneOf: Record<string, unknown>[]; $defs: Record<string, { properties: Record<string, Record<string, unknown>> }> };
   const report = ajv.compile(schema);
-  const reports = readJson("examples", "usage-reports.json") as { type: string }[];
-  const startup = reports.find((r) => r.type === "startup");
+  const reports = readJson("examples", "usage-reports.json") as { kind: string }[];
+  const startup = reports.find((r) => r.kind === "startup");
 
-  it.each(reports.map((r, i) => [`usage-reports.json[${i}] ${r.type}`, r] as const))("accepts %s", (_: string, json: unknown) => {
+  it.each(reports.map((r, i) => [`usage-reports.json[${i}] ${r.kind}`, r] as const))("accepts %s", (_: string, json: unknown) => {
     // Arrange
     const body = json;
     // Act
@@ -172,6 +172,8 @@ describe("usage report schema", () => {
     ["free text in a class", { startupTime: "2.3 seconds" }],
     ["a missing schemaVersion", { schemaVersion: undefined }],
     ["an unknown browser", { browser: "netscape" }],
+    ["a missing client", { client: undefined }],
+    ["an appVersion that is not a version", { appVersion: "my build" }],
   ])("rejects %s", (_: string, change: object) => {
     // Arrange（異常系: Rust 側の usage.rs のテストと同じ同値クラス）
     const body = JSON.parse(JSON.stringify({ ...startup, ...change }));
@@ -187,29 +189,38 @@ describe("usage report schema", () => {
     ["-1", -1, false],
   ])("a count of %s is %s", (_: string, n: number, expected: boolean) => {
     // Arrange（境界値）
-    const body = { ...reports.find((r) => r.type === "daily"), aiRewrites: n };
+    const body = { ...reports.find((r) => r.kind === "daily"), aiRewrites: n };
     // Act
     const valid = report(body);
     // Assert
     expect(valid).toBe(expected);
   });
 
-  it("annotates when and at which level each report is sent", () => {
+  it("annotates when, at which level and how large each report is", () => {
     // Arrange
-    const variants = schema.oneOf as unknown as Record<string, unknown>[];
+    const variants = schema.oneOf;
     // Act
     const annotations = Object.fromEntries(
       variants.map((v) => [
-        (v.properties as { type: { const: string } }).type.const,
-        [v["x-modelith-when"], v["x-modelith-level"]],
+        (v.properties as { kind: { const: string } }).kind.const,
+        [v["x-modelith-when"], v["x-modelith-level"], v["x-modelith-max-bytes"]],
       ]),
     );
     // Assert
     expect(annotations).toEqual({
-      startup: ["startup", "all"],
-      daily: ["daily", "all"],
-      error: ["error", "error"],
-      serverDaily: ["daily", "all"],
+      startup: ["startup", "all", 1024],
+      daily: ["daily", "all", 8192],
+      error: ["error", "error", 4096],
+      serverDaily: ["daily", "all", 2048],
     });
+  });
+
+  it.each(["StartupReport", "DailyReport", "ErrorReport", "ServerDailyReport"])("%s marks only the sender as dimensions", (name: string) => {
+    // Arrange
+    const properties = schema.$defs[name]?.properties ?? {};
+    // Act
+    const dimensions = Object.keys(properties).filter((k) => properties[k]?.["x-modelith-dimension"] === true);
+    // Assert
+    expect(dimensions.sort()).toEqual(["appVersion", "channel", "client"]);
   });
 });

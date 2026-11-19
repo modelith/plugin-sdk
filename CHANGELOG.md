@@ -27,9 +27,10 @@ The first release.
 - JSON Schemas for all of the above, generated from the Rust types: `plugin-manifest`, `rule-set`, `host-message`,
   `plugin-message`, `registry-entry` and `usage-report`.
 - The usage report sent by the Modelith app and server when the user allows it (Modelith's ADR-0026): `UsageReport`
-  (`startup`, `daily`, `error`, `serverDaily`), carrying `schemaVersion` (`USAGE_SCHEMA_VERSION`). Values are fixed words,
-  classes or bounded counts, never free text. Each report is annotated with `x-modelith-when` and `x-modelith-level`
-  in `usage-report.schema.json`. Unknown fields are ignored.
+  (`kind`: `startup`, `daily`, `error`, `serverDaily`), carrying `schemaVersion` (`USAGE_SCHEMA_VERSION`) and the sender
+  (`client`, `appVersion`, `channel`). Values are fixed words, classes or counts up to `COUNT_MAX`, never free text.
+  `usage-report.schema.json` annotates each report with `x-modelith-when`, `x-modelith-level` and `x-modelith-max-bytes`,
+  and the sender fields with `x-modelith-dimension`. Unknown fields are ignored.
 - `@modelith/plugin-sdk`: the generated TypeScript types, `connectToHost` for talking to Modelith from a Web Worker,
   `isValidPluginId`, and the `modelith-plugin validate` command that checks a plugin folder before you add it to Modelith.
 - The Rust crate depends only on `serde` and `serde_json` by default. The `codegen` feature adds `schemars` and `ts-rs`
