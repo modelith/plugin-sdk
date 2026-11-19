@@ -83,14 +83,25 @@ pub struct StartupReport {
     pub schema_version: u32,
     #[serde(flatten)]
     pub sender: Sender,
-    pub browser: Browser,
-    pub os: Os,
+    /// 環境（任意）。環境は日に 1 回のまとめ（[`DailyReport`]）で送り、起動の報告では送らなくてよい。
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    #[cfg_attr(feature = "codegen", ts(optional))]
+    pub browser: Option<Browser>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    #[cfg_attr(feature = "codegen", ts(optional))]
+    pub os: Option<Os>,
     /// 画面の幅の区分。
-    pub screen: ScreenClass,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    #[cfg_attr(feature = "codegen", ts(optional))]
+    pub screen: Option<ScreenClass>,
     /// 画面の表示の言語（BCP 47 の言語の部分）。
-    pub language: Language,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    #[cfg_attr(feature = "codegen", ts(optional))]
+    pub language: Option<Language>,
     /// 手元のフォルダを開けるブラウザか（File System Access）。
-    pub folder_access: bool,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    #[cfg_attr(feature = "codegen", ts(optional))]
+    pub folder_access: Option<bool>,
     /// 起動にかかった時間の区分。
     pub startup_time: DurationClass,
 }
@@ -103,8 +114,8 @@ pub struct DailyReport {
     pub schema_version: u32,
     #[serde(flatten)]
     pub sender: Sender,
-    /// 環境（任意）。日に 1 回なので、起動の回数ではなく使われた端末の数に近い分母になる。
-    /// 起動の報告と同じ値を載せる。受け口は本文の種類ごとに分けて数える。
+    /// 環境。日に 1 回なので、起動の回数ではなく使われた端末の数に近い分母になる（環境はここで送る）。
+    /// 型の上では任意（受け口は欠けた項目を読み飛ばす）。
     #[serde(default, skip_serializing_if = "Option::is_none")]
     #[cfg_attr(feature = "codegen", ts(optional))]
     pub browser: Option<Browser>,
@@ -775,6 +786,25 @@ mod tests {
         assert_eq!(
             (s.sender.client, s.sender.channel, s.startup_time),
             (Client::Web, Channel::Rc, DurationClass::From1To3s)
+        );
+    }
+
+    #[test]
+    fn startup_report_needs_no_environment() {
+        // Arrange（境界値: 環境の項目をすべて省く）
+        let mut json = startup();
+        for key in ["browser", "os", "screen", "language", "folderAccess"] {
+            json.as_object_mut().unwrap().remove(key);
+        }
+        // Act
+        let report: UsageReport = serde_json::from_value(json).unwrap();
+        // Assert
+        let UsageReport::Startup(s) = report else {
+            panic!("not startup")
+        };
+        assert_eq!(
+            (s.browser, s.startup_time),
+            (None, DurationClass::From1To3s)
         );
     }
 

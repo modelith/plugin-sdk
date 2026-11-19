@@ -5,11 +5,6 @@
     "client": "web",
     "appVersion": "0.2.0-rc.1",
     "channel": "rc",
-    "browser": "chrome",
-    "os": "windows",
-    "screen": "desktop",
-    "language": "ja",
-    "folderAccess": true,
     "startupTime": "1to3s"
   },
   {
