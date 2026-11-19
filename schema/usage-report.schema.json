@@ -294,7 +294,7 @@
           }
         },
         "browser": {
-          "description": "環境（任意）。日に 1 回なので、起動の回数ではなく使われた端末の数に近い分母になる。\n起動の報告と同じ値を載せる。受け口は本文の種類ごとに分けて数える。",
+          "description": "環境。日に 1 回なので、起動の回数ではなく使われた端末の数に近い分母になる（環境はここで送る）。\n型の上では任意（受け口は欠けた項目を読み飛ばす）。",
           "anyOf": [
             {
               "$ref": "#/$defs/Browser"
@@ -1143,7 +1143,15 @@
           "x-modelith-dimension": true
         },
         "browser": {
-          "$ref": "#/$defs/Browser"
+          "description": "環境（任意）。環境は日に 1 回のまとめ（[`DailyReport`]）で送り、起動の報告では送らなくてよい。",
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Browser"
+            },
+            {
+              "type": "null"
+            }
+          ]
         },
         "channel": {
           "$ref": "#/$defs/Channel",
@@ -1155,14 +1163,31 @@
         },
         "folderAccess": {
           "description": "手元のフォルダを開けるブラウザか（File System Access）。",
-          "type": "boolean"
+          "type": [
+            "boolean",
+            "null"
+          ]
         },
         "language": {
           "description": "画面の表示の言語（BCP 47 の言語の部分）。",
-          "$ref": "#/$defs/Language"
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Language"
+            },
+            {
+              "type": "null"
+            }
+          ]
         },
         "os": {
-          "$ref": "#/$defs/Os"
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Os"
+            },
+            {
+              "type": "null"
+            }
+          ]
         },
         "schemaVersion": {
           "type": "integer",
@@ -1171,7 +1196,14 @@
         },
         "screen": {
           "description": "画面の幅の区分。",
-          "$ref": "#/$defs/ScreenClass"
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ScreenClass"
+            },
+            {
+              "type": "null"
+            }
+          ]
         },
         "startupTime": {
           "description": "起動にかかった時間の区分。",
@@ -1183,11 +1215,6 @@
         "client",
         "appVersion",
         "channel",
-        "browser",
-        "os",
-        "screen",
-        "language",
-        "folderAccess",
         "startupTime"
       ]
     },

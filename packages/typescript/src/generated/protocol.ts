@@ -470,19 +470,23 @@ line?: number,
  */
 column?: number, };
 
-export type StartupReport = { schemaVersion: number, browser: Browser, os: Os, 
+export type StartupReport = { schemaVersion: number, 
+/**
+ * 環境（任意）。環境は日に 1 回のまとめ（[`DailyReport`]）で送り、起動の報告では送らなくてよい。
+ */
+browser?: Browser, os?: Os, 
 /**
  * 画面の幅の区分。
  */
-screen: ScreenClass, 
+screen?: ScreenClass, 
 /**
  * 画面の表示の言語（BCP 47 の言語の部分）。
  */
-language: Language, 
+language?: Language, 
 /**
  * 手元のフォルダを開けるブラウザか（File System Access）。
  */
-folderAccess: boolean, 
+folderAccess?: boolean, 
 /**
  * 起動にかかった時間の区分。
  */
@@ -494,8 +498,8 @@ appVersion: string, channel: Channel, };
 
 export type DailyReport = { schemaVersion: number, 
 /**
- * 環境（任意）。日に 1 回なので、起動の回数ではなく使われた端末の数に近い分母になる。
- * 起動の報告と同じ値を載せる。受け口は本文の種類ごとに分けて数える。
+ * 環境。日に 1 回なので、起動の回数ではなく使われた端末の数に近い分母になる（環境はここで送る）。
+ * 型の上では任意（受け口は欠けた項目を読み飛ばす）。
  */
 browser?: Browser, os?: Os, screen?: ScreenClass, language?: Language, folderAccess?: boolean, 
 /**
