@@ -245,6 +245,11 @@
           "$ref": "#/$defs/Count",
           "default": 0
         },
+        "other": {
+          "description": "そのほかの view。",
+          "$ref": "#/$defs/Count",
+          "default": 0
+        },
         "sequence": {
           "description": "SequenceView（シーケンス図）。",
           "$ref": "#/$defs/Count",
@@ -262,19 +267,19 @@
       "type": "object",
       "properties": {
         "aiRewrites": {
-          "description": "AI による書き換えの回数。",
+          "description": "AI による書き換え（MCP）の回数。アプリが数えられるのは modelith 0.4.0 から。",
           "$ref": "#/$defs/Count",
           "default": 0
         },
         "appVersion": {
           "description": "送り手の版（SemVer。例: `0.2.0-rc.1`）。",
           "type": "string",
-          "maxLength": 64,
+          "maxLength": 32,
           "pattern": "^\\d+\\.\\d+\\.\\d+(-[0-9A-Za-z.-]+)?$",
           "x-modelith-dimension": true
         },
         "autoViews": {
-          "description": "自動の図の種類ごとの表示の回数。",
+          "description": "自動の図の種類ごとの表示の回数。表示の回数は、図のタブを開いた・切り替えた回数（描き直しのたびではない）。",
           "$ref": "#/$defs/AutoViews",
           "default": {
             "afv": 0,
@@ -308,12 +313,13 @@
           "x-modelith-dimension": true
         },
         "createdViews": {
-          "description": "作成した図（view）の種類ごとの表示の回数。",
+          "description": "作成した図（テキストの view）の種類ごとの表示の回数。数え方は `auto_views` と同じ。view の名前は送らない。",
           "$ref": "#/$defs/CreatedViews",
           "default": {
             "actionFlow": 0,
             "general": 0,
             "interconnection": 0,
+            "other": 0,
             "sequence": 0,
             "stateTransition": 0
           }
@@ -360,8 +366,11 @@
           }
         },
         "firstMonth": {
-          "description": "このブラウザで初めて使った月（`YYYY-MM`）。",
-          "type": "string",
+          "description": "このブラウザで初めて使った月（`YYYY-MM`）。四半期に粗くするかは未決。",
+          "type": [
+            "string",
+            "null"
+          ],
           "pattern": "^\\d{4}-(0[1-9]|1[0-2])$"
         },
         "layout": {
@@ -380,16 +389,17 @@
           "items": {
             "$ref": "#/$defs/OnboardingStep"
           },
-          "maxItems": 5
+          "maxItems": 7,
+          "uniqueItems": true
         },
         "parseTimes": {
-          "description": "解析にかかった時間の区分ごとの回数（ファイルの大きさの区分ごと）。",
+          "description": "解析にかかった時間の区分ごとの回数（ファイルの大きさの区分ごと）。同じ組が 2 度あれば、受け口は足し合わせる。",
           "type": "array",
           "default": [],
           "items": {
             "$ref": "#/$defs/ParseTime"
           },
-          "maxItems": 16
+          "maxItems": 20
         },
         "plugins": {
           "description": "プラグインの利用。",
@@ -419,17 +429,27 @@
           "default": 0
         },
         "weeksUsed": {
-          "description": "このブラウザで使った週の数の区分（ID を持たずに、続けて使われているかを測る）。",
-          "$ref": "#/$defs/WeeksClass"
+          "description": "このブラウザで使った週の数の区分（ID を持たずに、続けて使われているかを測る）。区分の粗さは未決。",
+          "anyOf": [
+            {
+              "$ref": "#/$defs/WeeksClass"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "workerRestarts": {
+          "description": "コアを動かす Worker が止まり、作り直した回数。",
+          "$ref": "#/$defs/Count",
+          "default": 0
         }
       },
       "required": [
         "schemaVersion",
         "client",
         "appVersion",
-        "channel",
-        "weeksUsed",
-        "firstMonth"
+        "channel"
       ]
     },
     "Deployment": {
@@ -587,6 +607,57 @@
         }
       ]
     },
+    "ErrorName": {
+      "description": "例外の種類。決まった一覧に無いものは `other`。",
+      "oneOf": [
+        {
+          "type": "string",
+          "enum": [
+            "error",
+            "typeError",
+            "rangeError",
+            "referenceError",
+            "syntaxError",
+            "other"
+          ]
+        },
+        {
+          "description": "DOMException の NotAllowedError（クリップボード・フォルダの許可など）。",
+          "type": "string",
+          "const": "notAllowedError"
+        },
+        {
+          "description": "DOMException の QuotaExceededError（保存領域の不足）。",
+          "type": "string",
+          "const": "quotaExceededError"
+        },
+        {
+          "description": "DOMException の AbortError。",
+          "type": "string",
+          "const": "abortError"
+        },
+        {
+          "description": "DOMException の SecurityError。",
+          "type": "string",
+          "const": "securityError"
+        },
+        {
+          "description": "DOMException の NotFoundError。",
+          "type": "string",
+          "const": "notFoundError"
+        },
+        {
+          "description": "そのほかの DOMException。",
+          "type": "string",
+          "const": "otherDomException"
+        },
+        {
+          "description": "wasm の panic など、名前の無いもの。",
+          "type": "string",
+          "const": "panic"
+        }
+      ]
+    },
     "ErrorReport": {
       "description": "エラーの報告。エラーの文と利用者の文字は含めず、種類と自分たちのコードの場所だけを送る。",
       "type": "object",
@@ -594,7 +665,7 @@
         "appVersion": {
           "description": "送り手の版（SemVer。例: `0.2.0-rc.1`）。",
           "type": "string",
-          "maxLength": 64,
+          "maxLength": 32,
           "pattern": "^\\d+\\.\\d+\\.\\d+(-[0-9A-Za-z.-]+)?$",
           "x-modelith-dimension": true
         },
@@ -608,6 +679,10 @@
         },
         "errorKind": {
           "$ref": "#/$defs/ErrorKind"
+        },
+        "errorName": {
+          "description": "例外の種類（JS のエラーの名前、DOMException の名前）。",
+          "$ref": "#/$defs/ErrorName"
         },
         "frames": {
           "description": "スタックトレース（内側から外側へ）。",
@@ -634,6 +709,7 @@
         "channel",
         "level",
         "errorKind",
+        "errorName",
         "frames"
       ]
     },
@@ -694,31 +770,61 @@
         }
       }
     },
-    "Login": {
-      "description": "サーバのログインの方式。",
-      "oneOf": [
-        {
-          "type": "string",
-          "enum": [
-            "oidc"
-          ]
+    "LoginMethods": {
+      "description": "サーバの有効なログインの方式。",
+      "type": "object",
+      "properties": {
+        "accounts": {
+          "description": "管理者が作るアカウント（OIDC と併せた非常用の管理者を含む）。",
+          "type": "boolean"
         },
-        {
-          "description": "管理者が作るアカウント。",
-          "type": "string",
-          "const": "accounts"
+        "oidc": {
+          "type": "boolean"
         }
+      },
+      "required": [
+        "accounts",
+        "oidc"
       ]
     },
     "OnboardingStep": {
       "description": "使い始めの段階。",
-      "type": "string",
-      "enum": [
-        "sampleOpened",
-        "textWritten",
-        "diagramOpened",
-        "saved",
-        "folderOpened"
+      "oneOf": [
+        {
+          "description": "「サンプルを開く」か、起動時のサンプルを開いた。",
+          "type": "string",
+          "const": "sampleOpened"
+        },
+        {
+          "description": "テキストを初めて書き換えた。",
+          "type": "string",
+          "const": "textWritten"
+        },
+        {
+          "description": "図のタブを初めて切り替えた（起動直後の自動の表示は数えない）。",
+          "type": "string",
+          "const": "diagramOpened"
+        },
+        {
+          "description": "図から初めて編集した。",
+          "type": "string",
+          "const": "edited"
+        },
+        {
+          "description": "図（view）を初めて作った。",
+          "type": "string",
+          "const": "viewCreated"
+        },
+        {
+          "description": "ダウンロード・名前を付けて保存・上書き保存のどれか。",
+          "type": "string",
+          "const": "saved"
+        },
+        {
+          "description": "フォルダを開いた。",
+          "type": "string",
+          "const": "folderOpened"
+        }
       ]
     },
     "Os": {
@@ -732,6 +838,36 @@
         "other"
       ]
     },
+    "ParseDurationClass": {
+      "description": "解析にかかった時間の区分（解析は速いので、起動より細かい）。",
+      "oneOf": [
+        {
+          "description": "100 ミリ秒未満。",
+          "type": "string",
+          "const": "lt100ms"
+        },
+        {
+          "description": "100 ミリ秒以上 300 ミリ秒未満。",
+          "type": "string",
+          "const": "100to300ms"
+        },
+        {
+          "description": "300 ミリ秒以上 1 秒未満。",
+          "type": "string",
+          "const": "300msTo1s"
+        },
+        {
+          "description": "1 秒以上 3 秒未満。",
+          "type": "string",
+          "const": "1to3s"
+        },
+        {
+          "description": "3 秒以上。",
+          "type": "string",
+          "const": "ge3s"
+        }
+      ]
+    },
     "ParseTime": {
       "description": "解析の時間の区分ごとの回数（ファイルの大きさ × 時間を 1 つの項目として数える）。",
       "type": "object",
@@ -740,7 +876,7 @@
           "$ref": "#/$defs/Count"
         },
         "duration": {
-          "$ref": "#/$defs/DurationClass"
+          "$ref": "#/$defs/ParseDurationClass"
         },
         "fileSize": {
           "$ref": "#/$defs/SizeClass"
@@ -813,20 +949,20 @@
       }
     },
     "ScreenClass": {
-      "description": "画面の幅の区分。",
+      "description": "画面の幅の区分（760px は modelith の狭い画面の境目）。",
       "oneOf": [
         {
-          "description": "600px 未満。",
+          "description": "760px 以下。",
           "type": "string",
           "const": "phone"
         },
         {
-          "description": "600px 以上 1024px 未満。",
+          "description": "760px より広く 1024px 以下。",
           "type": "string",
           "const": "tablet"
         },
         {
-          "description": "1024px 以上。",
+          "description": "1024px より広い。",
           "type": "string",
           "const": "desktop"
         }
@@ -858,7 +994,7 @@
         "appVersion": {
           "description": "送り手の版（SemVer。例: `0.2.0-rc.1`）。",
           "type": "string",
-          "maxLength": 64,
+          "maxLength": 32,
           "pattern": "^\\d+\\.\\d+\\.\\d+(-[0-9A-Za-z.-]+)?$",
           "x-modelith-dimension": true
         },
@@ -879,7 +1015,8 @@
           "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
         },
         "login": {
-          "$ref": "#/$defs/Login"
+          "description": "有効なログインの方式（両方を有効にできる）。",
+          "$ref": "#/$defs/LoginMethods"
         },
         "os": {
           "$ref": "#/$defs/Os"
@@ -952,33 +1089,41 @@
       "type": "object",
       "properties": {
         "column": {
-          "type": "integer",
+          "description": "列（取れないときは省く）。",
+          "type": [
+            "integer",
+            "null"
+          ],
           "format": "uint32",
+          "maximum": 10000000,
           "minimum": 0
         },
         "function": {
-          "description": "関数の名前（wasm の中のコアの関数など、自分たちのコードのもの）。",
+          "description": "関数の名前（wasm の中のコアの関数。例: `modelith_core::edit::ops::rename`）。縮めた JS の関数名は送らない。",
           "type": [
             "string",
             "null"
           ],
-          "pattern": "^[A-Za-z_$][A-Za-z0-9_$:<>.]{0,199}$"
+          "pattern": "^[A-Za-z0-9_:<>$.]{1,200}$"
         },
         "line": {
-          "type": "integer",
+          "description": "行（取れないときは省く）。",
+          "type": [
+            "integer",
+            "null"
+          ],
           "format": "uint32",
+          "maximum": 10000000,
           "minimum": 0
         },
         "module": {
           "description": "配信しているアプリのファイル（例: `assets/index-3f2a.js`）。利用者のファイルの名前は入らない。",
           "type": "string",
-          "pattern": "^[A-Za-z0-9_][A-Za-z0-9_./-]{0,199}$"
+          "pattern": "^[A-Za-z0-9_][A-Za-z0-9_./-]{0,119}$"
         }
       },
       "required": [
-        "module",
-        "line",
-        "column"
+        "module"
       ]
     },
     "StartupReport": {
@@ -988,7 +1133,7 @@
         "appVersion": {
           "description": "送り手の版（SemVer。例: `0.2.0-rc.1`）。",
           "type": "string",
-          "maxLength": 64,
+          "maxLength": 32,
           "pattern": "^\\d+\\.\\d+\\.\\d+(-[0-9A-Za-z.-]+)?$",
           "x-modelith-dimension": true
         },

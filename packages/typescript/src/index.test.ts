@@ -196,6 +196,21 @@ describe("usage report schema", () => {
     expect(valid).toBe(expected);
   });
 
+  it.each([
+    ["a repeated onboarding step", "daily", { onboarding: ["saved", "saved"] }, false],
+    ["a frame line at the maximum", "error", { frames: [{ module: "assets/a.js", line: 10_000_000 }] }, true],
+    ["a frame line over the maximum", "error", { frames: [{ module: "assets/a.js", line: 10_000_001 }] }, false],
+    ["a module path over 120 characters", "error", { frames: [{ module: "a".repeat(121) }] }, false],
+    ["an appVersion over 32 characters", "startup", { appVersion: `1.0.0-${"a".repeat(27)}` }, false],
+  ])("%s is valid: %s", (_: string, kind: string, change: object, expected: boolean) => {
+    // Arrange（境界値・異常系）
+    const body = { ...reports.find((r) => r.kind === kind), ...change };
+    // Act
+    const valid = report(body);
+    // Assert
+    expect(valid).toBe(expected);
+  });
+
   it("annotates when, at which level and how large each report is", () => {
     // Arrange
     const variants = schema.oneOf;

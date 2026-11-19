@@ -306,7 +306,7 @@ export type ScreenClass = "phone" | "tablet" | "desktop";
 
 export type Language = "ja" | "en" | "other";
 
-export type OnboardingStep = "sampleOpened" | "textWritten" | "diagramOpened" | "saved" | "folderOpened";
+export type OnboardingStep = "sampleOpened" | "textWritten" | "diagramOpened" | "edited" | "viewCreated" | "saved" | "folderOpened";
 
 export type DurationClass = "lt1s" | "1to3s" | "3to10s" | "ge10s";
 
@@ -320,7 +320,15 @@ export type StorageClass = "lt100mb" | "100mbTo1gb" | "1to10gb" | "ge10gb";
 
 export type Deployment = "docker" | "binary";
 
-export type Login = "accounts" | "oidc";
+export type LoginMethods = { 
+/**
+ * 管理者が作るアカウント（OIDC と併せた非常用の管理者を含む）。
+ */
+accounts: boolean, oidc: boolean, };
+
+export type ParseDurationClass = "lt100ms" | "100to300ms" | "300msTo1s" | "1to3s" | "ge3s";
+
+export type ErrorName = "error" | "typeError" | "rangeError" | "referenceError" | "syntaxError" | "notAllowedError" | "quotaExceededError" | "abortError" | "securityError" | "notFoundError" | "otherDomException" | "panic" | "other";
 
 export type ErrorKind = "uncaughtError" | "unhandledRejection" | "wasmPanic";
 
@@ -382,7 +390,11 @@ stateTransition: Count,
 /**
  * SequenceView（シーケンス図）。
  */
-sequence: Count, };
+sequence: Count, 
+/**
+ * そのほかの view。
+ */
+other: Count, };
 
 export type Edits = { addNode: Count, addUsage: Count, rename: Count, delete: Count, deleteEdge: Count, connect: Count, addMessage: Count, updateMessage: Count, moveMessage: Count, setPhase: Count, initPhases: Count, makePort: Count, setPortDir: Count, deletePort: Count, saveView: Count, addToView: Count, removeFromView: Count, renameView: Count, deleteView: Count, setAttribute: Count, removeAttribute: Count, setDoc: Count, undo: Count, redo: Count, };
 
@@ -446,7 +458,7 @@ id: PluginId, uses: Count, };
 
 export type PluginUsage = { listed: Array<PluginUse>, unlisted: Count, };
 
-export type ParseTime = { fileSize: SizeClass, duration: DurationClass, count: Count, };
+export type ParseTime = { fileSize: SizeClass, duration: ParseDurationClass, count: Count, };
 
 export type StackFrame = { 
 /**
@@ -454,9 +466,17 @@ export type StackFrame = {
  */
 module: string, 
 /**
- * 関数の名前（wasm の中のコアの関数など、自分たちのコードのもの）。
+ * 関数の名前（wasm の中のコアの関数。例: `modelith_core::edit::ops::rename`）。縮めた JS の関数名は送らない。
  */
-function?: string, line: number, column: number, };
+function?: string, 
+/**
+ * 行（取れないときは省く）。
+ */
+line?: number, 
+/**
+ * 列（取れないときは省く）。
+ */
+column?: number, };
 
 export type StartupReport = { schemaVersion: number, browser: Browser, os: Os, 
 /**
@@ -486,11 +506,11 @@ export type DailyReport = { schemaVersion: number,
  */
 onboarding: Array<OnboardingStep>, 
 /**
- * 自動の図の種類ごとの表示の回数。
+ * 自動の図の種類ごとの表示の回数。表示の回数は、図のタブを開いた・切り替えた回数（描き直しのたびではない）。
  */
 autoViews: AutoViews, 
 /**
- * 作成した図（view）の種類ごとの表示の回数。
+ * 作成した図（テキストの view）の種類ごとの表示の回数。数え方は `auto_views` と同じ。view の名前は送らない。
  */
 createdViews: CreatedViews, 
 /**
@@ -518,11 +538,11 @@ checks: Checks,
  */
 plugins: PluginUsage, 
 /**
- * AI による書き換えの回数。
+ * AI による書き換え（MCP）の回数。アプリが数えられるのは modelith 0.4.0 から。
  */
 aiRewrites: Count, 
 /**
- * 解析にかかった時間の区分ごとの回数（ファイルの大きさの区分ごと）。
+ * 解析にかかった時間の区分ごとの回数（ファイルの大きさの区分ごと）。同じ組が 2 度あれば、受け口は足し合わせる。
  */
 parseTimes: Array<ParseTime>, 
 /**
@@ -530,13 +550,17 @@ parseTimes: Array<ParseTime>,
  */
 wasmLoadFailures: Count, 
 /**
- * このブラウザで使った週の数の区分（ID を持たずに、続けて使われているかを測る）。
+ * コアを動かす Worker が止まり、作り直した回数。
  */
-weeksUsed: WeeksClass, 
+workerRestarts: Count, 
 /**
- * このブラウザで初めて使った月（`YYYY-MM`）。
+ * このブラウザで使った週の数の区分（ID を持たずに、続けて使われているかを測る）。区分の粗さは未決。
  */
-firstMonth: string, client: Client, 
+weeksUsed?: WeeksClass, 
+/**
+ * このブラウザで初めて使った月（`YYYY-MM`）。四半期に粗くするかは未決。
+ */
+firstMonth?: string, client: Client, 
 /**
  * 送り手の版（SemVer。例: `0.2.0-rc.1`）。
  */
@@ -547,6 +571,10 @@ export type ErrorReport = { schemaVersion: number,
  * 送る段階（「すべて送る」と「エラーだけ」の比を数える）。
  */
 level: SendLevel, errorKind: ErrorKind, 
+/**
+ * 例外の種類（JS のエラーの名前、DOMException の名前）。
+ */
+errorName: ErrorName, 
 /**
  * スタックトレース（内側から外側へ）。
  */
@@ -560,7 +588,11 @@ export type ServerDailyReport = { schemaVersion: number,
 /**
  * 起動ごとに作るランダムな ID（UUID）。サーバに残す ID ではない。
  */
-instanceId: string, os: Os, deployment: Deployment, login: Login, 
+instanceId: string, os: Os, deployment: Deployment, 
+/**
+ * 有効なログインの方式（両方を有効にできる）。
+ */
+login: LoginMethods, 
 /**
  * 利用者の数の区分。
  */

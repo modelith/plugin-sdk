@@ -18,9 +18,9 @@
     "client": "web",
     "appVersion": "0.2.0-rc.1",
     "channel": "rc",
-    "onboarding": ["sampleOpened", "diagramOpened"],
+    "onboarding": ["sampleOpened", "diagramOpened", "edited"],
     "autoViews": { "trace": 3, "structure": 12, "control": 0, "ibd": 4, "behavior": 0, "seq": 1, "afv": 0, "stm": 2, "all": 0 },
-    "createdViews": { "general": 2, "interconnection": 1, "actionFlow": 0, "stateTransition": 0, "sequence": 0 },
+    "createdViews": { "general": 2, "interconnection": 1, "actionFlow": 0, "stateTransition": 0, "sequence": 0, "other": 0 },
     "edits": {
       "addNode": 12, "addUsage": 3, "rename": 2, "delete": 1, "deleteEdge": 0, "connect": 7,
       "addMessage": 0, "updateMessage": 0, "moveMessage": 0, "setPhase": 1, "initPhases": 0,
@@ -35,10 +35,11 @@
     "plugins": { "listed": [{ "id": "io.modelith.ports-check", "uses": 9 }], "unlisted": 4 },
     "aiRewrites": 2,
     "parseTimes": [
-      { "fileSize": "lt10kb", "duration": "lt1s", "count": 40 },
-      { "fileSize": "100kbTo1mb", "duration": "1to3s", "count": 2 }
+      { "fileSize": "lt10kb", "duration": "lt100ms", "count": 40 },
+      { "fileSize": "100kbTo1mb", "duration": "300msTo1s", "count": 2 }
     ],
     "wasmLoadFailures": 0,
+    "workerRestarts": 1,
     "weeksUsed": "2to4",
     "firstMonth": "2026-10"
   },
@@ -50,8 +51,9 @@
     "channel": "rc",
     "level": "errorsOnly",
     "errorKind": "wasmPanic",
+    "errorName": "panic",
     "frames": [
-      { "module": "assets/modelith_core_bg.wasm", "function": "modelith_core::edit::apply", "line": 1, "column": 482113 },
+      { "module": "assets/modelith_core_bg.wasm", "function": "modelith_core::edit::ops::rename" },
       { "module": "assets/index-3f2a9c.js", "line": 2, "column": 15022 }
     ]
   },
@@ -64,7 +66,7 @@
     "instanceId": "6f1c2a4e-9b0d-4c3e-8a77-1d2e3f405162",
     "os": "linux",
     "deployment": "docker",
-    "login": "oidc",
+    "login": { "accounts": true, "oidc": true },
     "users": "11to100",
     "activeUsers7d": "2to10",
     "projects": "11to100",

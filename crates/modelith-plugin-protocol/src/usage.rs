@@ -104,12 +104,15 @@ pub struct DailyReport {
     pub sender: Sender,
     /// その日に初めて起きた、使い始めの段階（同じ段階は 1 回だけ）。
     #[serde(default)]
-    #[cfg_attr(feature = "codegen", schemars(length(max = 5)))]
+    #[cfg_attr(
+        feature = "codegen",
+        schemars(length(max = 7), extend("uniqueItems" = true))
+    )]
     pub onboarding: Vec<OnboardingStep>,
-    /// 自動の図の種類ごとの表示の回数。
+    /// 自動の図の種類ごとの表示の回数。表示の回数は、図のタブを開いた・切り替えた回数（描き直しのたびではない）。
     #[serde(default)]
     pub auto_views: AutoViews,
-    /// 作成した図（view）の種類ごとの表示の回数。
+    /// 作成した図（テキストの view）の種類ごとの表示の回数。数え方は `auto_views` と同じ。view の名前は送らない。
     #[serde(default)]
     pub created_views: CreatedViews,
     /// 編集の意図（modelith-core の `Intent` の op）ごとの回数と、元に戻す・やり直す。
@@ -130,24 +133,31 @@ pub struct DailyReport {
     /// プラグインの利用。
     #[serde(default)]
     pub plugins: PluginUsage,
-    /// AI による書き換えの回数。
+    /// AI による書き換え（MCP）の回数。アプリが数えられるのは modelith 0.4.0 から。
     #[serde(default)]
     pub ai_rewrites: Count,
-    /// 解析にかかった時間の区分ごとの回数（ファイルの大きさの区分ごと）。
+    /// 解析にかかった時間の区分ごとの回数（ファイルの大きさの区分ごと）。同じ組が 2 度あれば、受け口は足し合わせる。
     #[serde(default)]
-    #[cfg_attr(feature = "codegen", schemars(length(max = 16)))]
+    #[cfg_attr(feature = "codegen", schemars(length(max = 20)))]
     pub parse_times: Vec<ParseTime>,
     /// wasm を読み込めなかった回数。
     #[serde(default)]
     pub wasm_load_failures: Count,
-    /// このブラウザで使った週の数の区分（ID を持たずに、続けて使われているかを測る）。
-    pub weeks_used: WeeksClass,
-    /// このブラウザで初めて使った月（`YYYY-MM`）。
+    /// コアを動かす Worker が止まり、作り直した回数。
+    #[serde(default)]
+    pub worker_restarts: Count,
+    /// このブラウザで使った週の数の区分（ID を持たずに、続けて使われているかを測る）。区分の粗さは未決。
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    #[cfg_attr(feature = "codegen", ts(optional))]
+    pub weeks_used: Option<WeeksClass>,
+    /// このブラウザで初めて使った月（`YYYY-MM`）。四半期に粗くするかは未決。
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     #[cfg_attr(
         feature = "codegen",
         schemars(regex(pattern = r"^\d{4}-(0[1-9]|1[0-2])$"))
     )]
-    pub first_month: String,
+    #[cfg_attr(feature = "codegen", ts(optional))]
+    pub first_month: Option<String>,
 }
 
 /// エラーの報告。エラーの文と利用者の文字は含めず、種類と自分たちのコードの場所だけを送る。
@@ -161,6 +171,8 @@ pub struct ErrorReport {
     /// 送る段階（「すべて送る」と「エラーだけ」の比を数える）。
     pub level: SendLevel,
     pub error_kind: ErrorKind,
+    /// 例外の種類（JS のエラーの名前、DOMException の名前）。
+    pub error_name: ErrorName,
     /// スタックトレース（内側から外側へ）。
     #[cfg_attr(feature = "codegen", schemars(length(max = 30)))]
     pub frames: Vec<StackFrame>,
@@ -174,19 +186,27 @@ pub struct StackFrame {
     /// 配信しているアプリのファイル（例: `assets/index-3f2a.js`）。利用者のファイルの名前は入らない。
     #[cfg_attr(
         feature = "codegen",
-        schemars(regex(pattern = r"^[A-Za-z0-9_][A-Za-z0-9_./-]{0,199}$"))
+        schemars(regex(pattern = r"^[A-Za-z0-9_][A-Za-z0-9_./-]{0,119}$"))
     )]
     pub module: String,
-    /// 関数の名前（wasm の中のコアの関数など、自分たちのコードのもの）。
+    /// 関数の名前（wasm の中のコアの関数。例: `modelith_core::edit::ops::rename`）。縮めた JS の関数名は送らない。
     #[serde(default, skip_serializing_if = "Option::is_none")]
     #[cfg_attr(
         feature = "codegen",
-        schemars(regex(pattern = r"^[A-Za-z_$][A-Za-z0-9_$:<>.]{0,199}$"))
+        schemars(regex(pattern = r"^[A-Za-z0-9_:<>$.]{1,200}$"))
     )]
     #[cfg_attr(feature = "codegen", ts(optional))]
     pub function: Option<String>,
-    pub line: u32,
-    pub column: u32,
+    /// 行（取れないときは省く）。
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    #[cfg_attr(feature = "codegen", schemars(range(max = 10_000_000)))]
+    #[cfg_attr(feature = "codegen", ts(optional))]
+    pub line: Option<u32>,
+    /// 列（取れないときは省く）。
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    #[cfg_attr(feature = "codegen", schemars(range(max = 10_000_000)))]
+    #[cfg_attr(feature = "codegen", ts(optional))]
+    pub column: Option<u32>,
 }
 
 /// サーバの日に 1 回のまとめ。
@@ -207,7 +227,8 @@ pub struct ServerDailyReport {
     pub instance_id: String,
     pub os: Os,
     pub deployment: Deployment,
-    pub login: Login,
+    /// 有効なログインの方式（両方を有効にできる）。
+    pub login: LoginMethods,
     /// 利用者の数の区分。
     pub users: AmountClass,
     /// 7 日以内に使った人の数の区分。
@@ -232,7 +253,7 @@ pub struct Sender {
         feature = "codegen",
         schemars(
             regex(pattern = r"^\d+\.\d+\.\d+(-[0-9A-Za-z.-]+)?$"),
-            length(max = 64),
+            length(max = 32),
             extend("x-modelith-dimension" = true)
         )
     )]
@@ -302,6 +323,8 @@ pub struct CreatedViews {
     pub state_transition: Count,
     /// SequenceView（シーケンス図）。
     pub sequence: Count,
+    /// そのほかの view。
+    pub other: Count,
 }
 
 /// 編集の回数。名前は modelith-core の `Intent` の op と同じ。
@@ -415,7 +438,7 @@ pub struct PluginUse {
 #[serde(rename_all = "camelCase")]
 pub struct ParseTime {
     pub file_size: SizeClass,
-    pub duration: DurationClass,
+    pub duration: ParseDurationClass,
     pub count: Count,
 }
 
@@ -502,16 +525,16 @@ pub enum Os {
     Other,
 }
 
-/// 画面の幅の区分。
+/// 画面の幅の区分（760px は modelith の狭い画面の境目）。
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 #[cfg_attr(feature = "codegen", derive(schemars::JsonSchema, ts_rs::TS))]
 #[serde(rename_all = "camelCase")]
 pub enum ScreenClass {
-    /// 600px 未満。
+    /// 760px 以下。
     Phone,
-    /// 600px 以上 1024px 未満。
+    /// 760px より広く 1024px 以下。
     Tablet,
-    /// 1024px 以上。
+    /// 1024px より広い。
     Desktop,
 }
 
@@ -530,10 +553,19 @@ pub enum Language {
 #[cfg_attr(feature = "codegen", derive(schemars::JsonSchema, ts_rs::TS))]
 #[serde(rename_all = "camelCase")]
 pub enum OnboardingStep {
+    /// 「サンプルを開く」か、起動時のサンプルを開いた。
     SampleOpened,
+    /// テキストを初めて書き換えた。
     TextWritten,
+    /// 図のタブを初めて切り替えた（起動直後の自動の表示は数えない）。
     DiagramOpened,
+    /// 図から初めて編集した。
+    Edited,
+    /// 図（view）を初めて作った。
+    ViewCreated,
+    /// ダウンロード・名前を付けて保存・上書き保存のどれか。
     Saved,
+    /// フォルダを開いた。
     FolderOpened,
 }
 
@@ -553,6 +585,27 @@ pub enum DurationClass {
     /// 10 秒以上。
     #[serde(rename = "ge10s")]
     Over10s,
+}
+
+/// 解析にかかった時間の区分（解析は速いので、起動より細かい）。
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[cfg_attr(feature = "codegen", derive(schemars::JsonSchema, ts_rs::TS))]
+pub enum ParseDurationClass {
+    /// 100 ミリ秒未満。
+    #[serde(rename = "lt100ms")]
+    Under100Ms,
+    /// 100 ミリ秒以上 300 ミリ秒未満。
+    #[serde(rename = "100to300ms")]
+    From100To300Ms,
+    /// 300 ミリ秒以上 1 秒未満。
+    #[serde(rename = "300msTo1s")]
+    From300MsTo1s,
+    /// 1 秒以上 3 秒未満。
+    #[serde(rename = "1to3s")]
+    From1To3s,
+    /// 3 秒以上。
+    #[serde(rename = "ge3s")]
+    Over3s,
 }
 
 /// ファイルの大きさの区分（UTF-8 のバイト数）。
@@ -640,14 +693,14 @@ pub enum Deployment {
     Binary,
 }
 
-/// サーバのログインの方式。
+/// サーバの有効なログインの方式。
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 #[cfg_attr(feature = "codegen", derive(schemars::JsonSchema, ts_rs::TS))]
 #[serde(rename_all = "camelCase")]
-pub enum Login {
-    /// 管理者が作るアカウント。
-    Accounts,
-    Oidc,
+pub struct LoginMethods {
+    /// 管理者が作るアカウント（OIDC と併せた非常用の管理者を含む）。
+    pub accounts: bool,
+    pub oidc: bool,
 }
 
 /// エラーの種類。
@@ -661,6 +714,33 @@ pub enum ErrorKind {
     UnhandledRejection,
     /// wasm（コア）の中の panic。
     WasmPanic,
+}
+
+/// 例外の種類。決まった一覧に無いものは `other`。
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[cfg_attr(feature = "codegen", derive(schemars::JsonSchema, ts_rs::TS))]
+#[serde(rename_all = "camelCase")]
+pub enum ErrorName {
+    Error,
+    TypeError,
+    RangeError,
+    ReferenceError,
+    SyntaxError,
+    /// DOMException の NotAllowedError（クリップボード・フォルダの許可など）。
+    NotAllowedError,
+    /// DOMException の QuotaExceededError（保存領域の不足）。
+    QuotaExceededError,
+    /// DOMException の AbortError。
+    AbortError,
+    /// DOMException の SecurityError。
+    SecurityError,
+    /// DOMException の NotFoundError。
+    NotFoundError,
+    /// そのほかの DOMException。
+    OtherDomException,
+    /// wasm の panic など、名前の無いもの。
+    Panic,
+    Other,
 }
 
 #[cfg(test)]
@@ -705,7 +785,7 @@ mod tests {
         // Arrange（境界値: 必須の項目だけ。回数の項目はすべて省く）
         let json = json!({
             "kind": "daily", "schemaVersion": 1, "client": "web", "appVersion": "0.2.0",
-            "channel": "stable", "weeksUsed": "1", "firstMonth": "2026-11"
+            "channel": "stable"
         });
         // Act
         let report: UsageReport = serde_json::from_value(json).unwrap();
@@ -774,8 +854,8 @@ mod tests {
         let frame = StackFrame {
             module: "assets/index.js".into(),
             function: None,
-            line: 1,
-            column: 2,
+            line: Some(1),
+            column: Some(2),
         };
         // Act
         let json = serde_json::to_value(frame).unwrap();
