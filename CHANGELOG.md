@@ -25,7 +25,11 @@ The first release.
 - `TextEdit` and `Diagnostic`, in the same shape as the Language Server Protocol.
 - The plugin registry entry: `RegistryEntry`.
 - JSON Schemas for all of the above, generated from the Rust types: `plugin-manifest`, `rule-set`, `host-message`,
-  `plugin-message` and `registry-entry`.
+  `plugin-message`, `registry-entry` and `usage-report`.
+- The usage report sent by the Modelith app and server when the user allows it (Modelith's ADR-0026): `UsageReport`
+  (`startup`, `daily`, `error`, `serverDaily`), carrying `schemaVersion` (`USAGE_SCHEMA_VERSION`). Values are fixed words,
+  classes or bounded counts, never free text. Each report is annotated with `x-modelith-when` and `x-modelith-level`
+  in `usage-report.schema.json`. Unknown fields are ignored.
 - `@modelith/plugin-sdk`: the generated TypeScript types, `connectToHost` for talking to Modelith from a Web Worker,
   `isValidPluginId`, and the `modelith-plugin validate` command that checks a plugin folder before you add it to Modelith.
 - The Rust crate depends only on `serde` and `serde_json` by default. The `codegen` feature adds `schemars` and `ts-rs`

@@ -152,6 +152,7 @@ npm install --save-dev https://github.com/modelith/plugin-sdk/releases/download/
 | [`rule-set`](schema/rule-set.schema.json) | `rules` プラグインのルールファイル |
 | [`host-message`](schema/host-message.schema.json) / [`plugin-message`](schema/plugin-message.schema.json) | Modelith と `browser` プラグインの間のメッセージ |
 | [`registry-entry`](schema/registry-entry.schema.json) | プラグインレジストリの索引エントリ |
+| [`usage-report`](schema/usage-report.schema.json) | 利用者が許したときに Modelith のアプリとサーバが送る利用状況（プラグインは使わない） |
 
 ## バージョン
 

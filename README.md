@@ -151,6 +151,7 @@ npm install --save-dev https://github.com/modelith/plugin-sdk/releases/download/
 | [`rule-set`](schema/rule-set.schema.json) | Rule files of a `rules` plugin |
 | [`host-message`](schema/host-message.schema.json) / [`plugin-message`](schema/plugin-message.schema.json) | Messages between Modelith and a `browser` plugin |
 | [`registry-entry`](schema/registry-entry.schema.json) | An entry in the plugin registry |
+| [`usage-report`](schema/usage-report.schema.json) | Usage data the Modelith app and server send when the user allows it (not used by plugins) |
 
 ## Versioning
 

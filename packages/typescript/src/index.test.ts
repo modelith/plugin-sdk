@@ -2,7 +2,7 @@ import { readFileSync, readdirSync } from "node:fs";
 import { join } from "node:path";
 import Ajv2020 from "ajv/dist/2020.js";
 import { describe, expect, it } from "vitest";
-import { isValidPluginId } from "./index.js";
+import { COUNT_MAX, isValidPluginId } from "./index.js";
 
 const root = join(import.meta.dirname, "../../..");
 const readJson = (...p: string[]) => JSON.parse(readFileSync(join(root, ...p), "utf8"));
@@ -140,5 +140,76 @@ describe("JSON Schema accepts the shared examples", () => {
     const valid = manifest(json);
     // Assert
     expect(valid).toBe(false);
+  });
+});
+
+describe("usage report schema", () => {
+  const ajv = new Ajv2020.default({ strict: false });
+  const schema = readJson("schema/usage-report.schema.json") as { oneOf: { properties: { type: { const: string } } }[] };
+  const report = ajv.compile(schema);
+  const reports = readJson("examples", "usage-reports.json") as { type: string }[];
+  const startup = reports.find((r) => r.type === "startup");
+
+  it.each(reports.map((r, i) => [`usage-reports.json[${i}] ${r.type}`, r] as const))("accepts %s", (_: string, json: unknown) => {
+    // Arrange
+    const body = json;
+    // Act
+    const valid = report(body);
+    // Assert
+    expect(valid, JSON.stringify(report.errors)).toBe(true);
+  });
+
+  it("ignores unknown fields from a newer sender", () => {
+    // Arrange
+    const body = { ...startup, newField: 1 };
+    // Act
+    const valid = report(body);
+    // Assert
+    expect(valid, JSON.stringify(report.errors)).toBe(true);
+  });
+
+  it.each([
+    ["free text in a class", { startupTime: "2.3 seconds" }],
+    ["a missing schemaVersion", { schemaVersion: undefined }],
+    ["an unknown browser", { browser: "netscape" }],
+  ])("rejects %s", (_: string, change: object) => {
+    // Arrange（異常系: Rust 側の usage.rs のテストと同じ同値クラス）
+    const body = JSON.parse(JSON.stringify({ ...startup, ...change }));
+    // Act
+    const valid = report(body);
+    // Assert
+    expect(valid).toBe(false);
+  });
+
+  it.each([
+    ["the maximum", COUNT_MAX, true],
+    ["the maximum + 1", COUNT_MAX + 1, false],
+    ["-1", -1, false],
+  ])("a count of %s is %s", (_: string, n: number, expected: boolean) => {
+    // Arrange（境界値）
+    const body = { ...reports.find((r) => r.type === "daily"), aiRewrites: n };
+    // Act
+    const valid = report(body);
+    // Assert
+    expect(valid).toBe(expected);
+  });
+
+  it("annotates when and at which level each report is sent", () => {
+    // Arrange
+    const variants = schema.oneOf as unknown as Record<string, unknown>[];
+    // Act
+    const annotations = Object.fromEntries(
+      variants.map((v) => [
+        (v.properties as { type: { const: string } }).type.const,
+        [v["x-modelith-when"], v["x-modelith-level"]],
+      ]),
+    );
+    // Assert
+    expect(annotations).toEqual({
+      startup: ["startup", "all"],
+      daily: ["daily", "all"],
+      error: ["error", "error"],
+      serverDaily: ["daily", "all"],
+    });
   });
 });

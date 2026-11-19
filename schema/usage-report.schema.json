@@ -1,0 +1,794 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Modelith usage report",
+  "description": "送る本文。",
+  "oneOf": [
+    {
+      "description": "ブラウザのアプリを起動したとき。",
+      "type": "object",
+      "properties": {
+        "type": {
+          "type": "string",
+          "const": "startup"
+        }
+      },
+      "$ref": "#/$defs/StartupReport",
+      "required": [
+        "type"
+      ],
+      "x-modelith-level": "all",
+      "x-modelith-when": "startup"
+    },
+    {
+      "description": "ブラウザのアプリの、日に 1 回のまとめ（手元で足し込んだ回数）。",
+      "type": "object",
+      "properties": {
+        "type": {
+          "type": "string",
+          "const": "daily"
+        }
+      },
+      "$ref": "#/$defs/DailyReport",
+      "required": [
+        "type"
+      ],
+      "x-modelith-level": "all",
+      "x-modelith-when": "daily"
+    },
+    {
+      "description": "ブラウザのアプリでエラーが起きたとき（すぐ送る）。",
+      "type": "object",
+      "properties": {
+        "type": {
+          "type": "string",
+          "const": "error"
+        }
+      },
+      "$ref": "#/$defs/ErrorReport",
+      "required": [
+        "type"
+      ],
+      "x-modelith-level": "error",
+      "x-modelith-when": "error"
+    },
+    {
+      "description": "自分で動かすサーバの、日に 1 回のまとめ。",
+      "type": "object",
+      "properties": {
+        "type": {
+          "type": "string",
+          "const": "serverDaily"
+        }
+      },
+      "$ref": "#/$defs/ServerDailyReport",
+      "required": [
+        "type"
+      ],
+      "x-modelith-level": "all",
+      "x-modelith-when": "daily"
+    }
+  ],
+  "$defs": {
+    "AmountClass": {
+      "description": "数の区分（サーバの利用者・プロジェクト・プラグインの数）。",
+      "oneOf": [
+        {
+          "type": "string",
+          "enum": [
+            "0",
+            "1"
+          ]
+        },
+        {
+          "description": "2〜10。",
+          "type": "string",
+          "const": "2to10"
+        },
+        {
+          "description": "11〜100。",
+          "type": "string",
+          "const": "11to100"
+        },
+        {
+          "description": "101〜1000。",
+          "type": "string",
+          "const": "101to1000"
+        },
+        {
+          "description": "1001 以上。",
+          "type": "string",
+          "const": "ge1001"
+        }
+      ]
+    },
+    "AppInfo": {
+      "description": "アプリの版と系列。",
+      "type": "object",
+      "properties": {
+        "channel": {
+          "$ref": "#/$defs/Channel"
+        },
+        "version": {
+          "description": "アプリの版（SemVer）。",
+          "type": "string",
+          "pattern": "^\\d+\\.\\d+\\.\\d+(-[0-9A-Za-z.-]+)?$"
+        }
+      },
+      "required": [
+        "version",
+        "channel"
+      ]
+    },
+    "Browser": {
+      "type": "string",
+      "enum": [
+        "chrome",
+        "edge",
+        "firefox",
+        "safari",
+        "other"
+      ]
+    },
+    "Channel": {
+      "description": "アプリの公開の系列（modelith の ADR-0022）。",
+      "type": "string",
+      "enum": [
+        "stable",
+        "rc",
+        "preview"
+      ]
+    },
+    "Checks": {
+      "description": "チェックの実行の回数と、1 回で見つかった問題の数の区分ごとの回数。",
+      "type": "object",
+      "properties": {
+        "noProblems": {
+          "description": "問題が 0 件だった回数。",
+          "$ref": "#/$defs/Count",
+          "default": 0
+        },
+        "problems100OrMore": {
+          "description": "100 件以上だった回数。",
+          "$ref": "#/$defs/Count",
+          "default": 0
+        },
+        "problems10To99": {
+          "description": "10〜99 件だった回数。",
+          "$ref": "#/$defs/Count",
+          "default": 0
+        },
+        "problems1To9": {
+          "description": "1〜9 件だった回数。",
+          "$ref": "#/$defs/Count",
+          "default": 0
+        },
+        "runs": {
+          "$ref": "#/$defs/Count",
+          "default": 0
+        }
+      }
+    },
+    "Count": {
+      "description": "A count from 0 up to the maximum.",
+      "type": "integer",
+      "maximum": 1000000,
+      "minimum": 0
+    },
+    "DailyReport": {
+      "type": "object",
+      "properties": {
+        "aiRewrites": {
+          "description": "AI による書き換えの回数。",
+          "$ref": "#/$defs/Count",
+          "default": 0
+        },
+        "app": {
+          "$ref": "#/$defs/AppInfo"
+        },
+        "checks": {
+          "description": "チェックの実行。",
+          "$ref": "#/$defs/Checks",
+          "default": {
+            "noProblems": 0,
+            "problems100OrMore": 0,
+            "problems10To99": 0,
+            "problems1To9": 0,
+            "runs": 0
+          }
+        },
+        "diagramViews": {
+          "description": "図の種類ごとの表示の回数。",
+          "$ref": "#/$defs/DiagramViews",
+          "default": {
+            "afv": 0,
+            "all": 0,
+            "behavior": 0,
+            "control": 0,
+            "ibd": 0,
+            "seq": 0,
+            "stm": 0,
+            "structure": 0,
+            "trace": 0
+          }
+        },
+        "edits": {
+          "description": "操作の回数。",
+          "$ref": "#/$defs/Edits",
+          "default": {
+            "add": 0,
+            "delete": 0,
+            "relate": 0,
+            "rename": 0,
+            "undo": 0
+          }
+        },
+        "exports": {
+          "description": "エクスポートの形式ごとの回数。",
+          "$ref": "#/$defs/Exports",
+          "default": {
+            "drawio": 0,
+            "jpeg": 0,
+            "png": 0,
+            "svg": 0
+          }
+        },
+        "firstMonth": {
+          "description": "このブラウザで初めて使った月（`YYYY-MM`）。",
+          "type": "string",
+          "pattern": "^\\d{4}-(0[1-9]|1[0-2])$"
+        },
+        "onboarding": {
+          "description": "その日に初めて起きた、使い始めの段階（同じ段階は 1 回だけ）。",
+          "type": "array",
+          "default": [],
+          "items": {
+            "$ref": "#/$defs/OnboardingStep"
+          },
+          "maxItems": 5
+        },
+        "parseTimes": {
+          "description": "解析にかかった時間の区分ごとの回数（ファイルの大きさの区分ごと）。",
+          "type": "array",
+          "default": [],
+          "items": {
+            "$ref": "#/$defs/ParseTime"
+          },
+          "maxItems": 16
+        },
+        "plugins": {
+          "description": "プラグインの利用。",
+          "$ref": "#/$defs/PluginUsage",
+          "default": {
+            "listed": [],
+            "unlisted": 0
+          }
+        },
+        "schemaVersion": {
+          "type": "integer",
+          "format": "uint32",
+          "minimum": 0
+        },
+        "wasmLoadFailures": {
+          "description": "wasm を読み込めなかった回数。",
+          "$ref": "#/$defs/Count",
+          "default": 0
+        },
+        "weeksUsed": {
+          "description": "このブラウザで使った週の数の区分（ID を持たずに、続けて使われているかを測る）。",
+          "$ref": "#/$defs/WeeksClass"
+        }
+      },
+      "required": [
+        "schemaVersion",
+        "app",
+        "weeksUsed",
+        "firstMonth"
+      ]
+    },
+    "Deployment": {
+      "description": "サーバの動かし方。",
+      "type": "string",
+      "enum": [
+        "docker",
+        "binary"
+      ]
+    },
+    "DiagramViews": {
+      "description": "図の種類ごとの回数（アプリの自動の図の id ごと）。",
+      "type": "object",
+      "properties": {
+        "afv": {
+          "$ref": "#/$defs/Count",
+          "default": 0
+        },
+        "all": {
+          "$ref": "#/$defs/Count",
+          "default": 0
+        },
+        "behavior": {
+          "$ref": "#/$defs/Count",
+          "default": 0
+        },
+        "control": {
+          "$ref": "#/$defs/Count",
+          "default": 0
+        },
+        "ibd": {
+          "$ref": "#/$defs/Count",
+          "default": 0
+        },
+        "seq": {
+          "$ref": "#/$defs/Count",
+          "default": 0
+        },
+        "stm": {
+          "$ref": "#/$defs/Count",
+          "default": 0
+        },
+        "structure": {
+          "$ref": "#/$defs/Count",
+          "default": 0
+        },
+        "trace": {
+          "$ref": "#/$defs/Count",
+          "default": 0
+        }
+      }
+    },
+    "DurationClass": {
+      "description": "かかった時間の区分。",
+      "oneOf": [
+        {
+          "description": "1 秒未満。",
+          "type": "string",
+          "const": "lt1s"
+        },
+        {
+          "description": "1 秒以上 3 秒未満。",
+          "type": "string",
+          "const": "1to3s"
+        },
+        {
+          "description": "3 秒以上 10 秒未満。",
+          "type": "string",
+          "const": "3to10s"
+        },
+        {
+          "description": "10 秒以上。",
+          "type": "string",
+          "const": "ge10s"
+        }
+      ]
+    },
+    "Edits": {
+      "description": "操作の回数。",
+      "type": "object",
+      "properties": {
+        "add": {
+          "description": "要素の追加。",
+          "$ref": "#/$defs/Count",
+          "default": 0
+        },
+        "delete": {
+          "$ref": "#/$defs/Count",
+          "default": 0
+        },
+        "relate": {
+          "description": "関係の追加。",
+          "$ref": "#/$defs/Count",
+          "default": 0
+        },
+        "rename": {
+          "$ref": "#/$defs/Count",
+          "default": 0
+        },
+        "undo": {
+          "$ref": "#/$defs/Count",
+          "default": 0
+        }
+      }
+    },
+    "ErrorKind": {
+      "description": "エラーの種類。",
+      "oneOf": [
+        {
+          "description": "捕まえられなかった例外。",
+          "type": "string",
+          "const": "uncaughtError"
+        },
+        {
+          "description": "処理されなかった Promise の拒否。",
+          "type": "string",
+          "const": "unhandledRejection"
+        },
+        {
+          "description": "wasm（コア）の中の panic。",
+          "type": "string",
+          "const": "wasmPanic"
+        }
+      ]
+    },
+    "ErrorReport": {
+      "description": "エラーの報告。エラーの文と利用者の文字は含めず、種類とコードの場所だけを送る。",
+      "type": "object",
+      "properties": {
+        "app": {
+          "$ref": "#/$defs/AppInfo"
+        },
+        "frames": {
+          "description": "スタックトレース（内側から外側へ）。",
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/StackFrame"
+          },
+          "maxItems": 50
+        },
+        "kind": {
+          "$ref": "#/$defs/ErrorKind"
+        },
+        "schemaVersion": {
+          "type": "integer",
+          "format": "uint32",
+          "minimum": 0
+        }
+      },
+      "required": [
+        "schemaVersion",
+        "app",
+        "kind",
+        "frames"
+      ]
+    },
+    "Exports": {
+      "description": "エクスポートの形式ごとの回数。",
+      "type": "object",
+      "properties": {
+        "drawio": {
+          "$ref": "#/$defs/Count",
+          "default": 0
+        },
+        "jpeg": {
+          "$ref": "#/$defs/Count",
+          "default": 0
+        },
+        "png": {
+          "$ref": "#/$defs/Count",
+          "default": 0
+        },
+        "svg": {
+          "$ref": "#/$defs/Count",
+          "default": 0
+        }
+      }
+    },
+    "Language": {
+      "description": "画面の表示の言語。",
+      "type": "string",
+      "enum": [
+        "ja",
+        "en",
+        "other"
+      ]
+    },
+    "Login": {
+      "description": "サーバのログインの方式。",
+      "oneOf": [
+        {
+          "type": "string",
+          "enum": [
+            "oidc"
+          ]
+        },
+        {
+          "description": "管理者が作るアカウント。",
+          "type": "string",
+          "const": "accounts"
+        }
+      ]
+    },
+    "OnboardingStep": {
+      "description": "使い始めの段階。",
+      "type": "string",
+      "enum": [
+        "sampleOpened",
+        "textWritten",
+        "diagramOpened",
+        "saved",
+        "folderOpened"
+      ]
+    },
+    "Os": {
+      "type": "string",
+      "enum": [
+        "windows",
+        "macos",
+        "linux",
+        "android",
+        "ios",
+        "other"
+      ]
+    },
+    "ParseTime": {
+      "description": "解析の時間の区分ごとの回数。",
+      "type": "object",
+      "properties": {
+        "count": {
+          "$ref": "#/$defs/Count"
+        },
+        "duration": {
+          "$ref": "#/$defs/DurationClass"
+        },
+        "fileSize": {
+          "$ref": "#/$defs/SizeClass"
+        }
+      },
+      "required": [
+        "fileSize",
+        "duration",
+        "count"
+      ]
+    },
+    "PluginId": {
+      "description": "Reverse-domain plugin id, e.g. \"com.example.my-plugin\".",
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9-]*(\\.[a-z][a-z0-9-]*)+$"
+    },
+    "PluginUsage": {
+      "description": "プラグインの利用。公開の登録簿にあるものだけ ID を送り、それ以外は回数だけを `unlisted` に足す。",
+      "type": "object",
+      "properties": {
+        "listed": {
+          "type": "array",
+          "default": [],
+          "items": {
+            "$ref": "#/$defs/PluginUse"
+          },
+          "maxItems": 50
+        },
+        "unlisted": {
+          "$ref": "#/$defs/Count",
+          "default": 0
+        }
+      }
+    },
+    "PluginUse": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "description": "公開の登録簿にあるプラグインの ID。",
+          "$ref": "#/$defs/PluginId"
+        },
+        "uses": {
+          "$ref": "#/$defs/Count"
+        }
+      },
+      "required": [
+        "id",
+        "uses"
+      ]
+    },
+    "ScreenClass": {
+      "description": "画面の幅の区分。",
+      "oneOf": [
+        {
+          "description": "600px 未満。",
+          "type": "string",
+          "const": "phone"
+        },
+        {
+          "description": "600px 以上 1024px 未満。",
+          "type": "string",
+          "const": "tablet"
+        },
+        {
+          "description": "1024px 以上。",
+          "type": "string",
+          "const": "desktop"
+        }
+      ]
+    },
+    "ServerDailyReport": {
+      "type": "object",
+      "properties": {
+        "activeUsers7d": {
+          "description": "7 日以内に使った人の数の区分。",
+          "$ref": "#/$defs/AmountClass"
+        },
+        "deployment": {
+          "$ref": "#/$defs/Deployment"
+        },
+        "instanceId": {
+          "description": "起動ごとに作るランダムな ID（UUID）。端末やサーバに残す ID ではない。",
+          "type": "string",
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+        },
+        "login": {
+          "$ref": "#/$defs/Login"
+        },
+        "os": {
+          "$ref": "#/$defs/Os"
+        },
+        "plugins": {
+          "description": "プラグインの数の区分。",
+          "$ref": "#/$defs/AmountClass"
+        },
+        "projects": {
+          "description": "プロジェクトの数の区分。",
+          "$ref": "#/$defs/AmountClass"
+        },
+        "schemaVersion": {
+          "type": "integer",
+          "format": "uint32",
+          "minimum": 0
+        },
+        "storage": {
+          "description": "保存容量の区分。",
+          "$ref": "#/$defs/StorageClass"
+        },
+        "users": {
+          "description": "利用者の数の区分。",
+          "$ref": "#/$defs/AmountClass"
+        },
+        "version": {
+          "description": "サーバの版（SemVer）。",
+          "type": "string",
+          "pattern": "^\\d+\\.\\d+\\.\\d+(-[0-9A-Za-z.-]+)?$"
+        }
+      },
+      "required": [
+        "schemaVersion",
+        "instanceId",
+        "version",
+        "os",
+        "deployment",
+        "login",
+        "users",
+        "activeUsers7d",
+        "projects",
+        "storage",
+        "plugins"
+      ]
+    },
+    "SizeClass": {
+      "description": "ファイルの大きさの区分（UTF-8 のバイト数）。",
+      "oneOf": [
+        {
+          "description": "10 KB 未満。",
+          "type": "string",
+          "const": "lt10kb"
+        },
+        {
+          "description": "10 KB 以上 100 KB 未満。",
+          "type": "string",
+          "const": "10to100kb"
+        },
+        {
+          "description": "100 KB 以上 1 MB 未満。",
+          "type": "string",
+          "const": "100kbTo1mb"
+        },
+        {
+          "description": "1 MB 以上。",
+          "type": "string",
+          "const": "ge1mb"
+        }
+      ]
+    },
+    "StackFrame": {
+      "description": "スタックトレースの 1 段。",
+      "type": "object",
+      "properties": {
+        "column": {
+          "type": "integer",
+          "format": "uint32",
+          "minimum": 0
+        },
+        "line": {
+          "type": "integer",
+          "format": "uint32",
+          "minimum": 0
+        },
+        "module": {
+          "description": "アプリの組み立て物の中のファイル（例: `assets/index-3f2a.js`）。利用者のファイルの名前は入らない。",
+          "type": "string",
+          "pattern": "^[A-Za-z0-9_][A-Za-z0-9_./-]{0,199}$"
+        }
+      },
+      "required": [
+        "module",
+        "line",
+        "column"
+      ]
+    },
+    "StartupReport": {
+      "type": "object",
+      "properties": {
+        "app": {
+          "$ref": "#/$defs/AppInfo"
+        },
+        "browser": {
+          "$ref": "#/$defs/Browser"
+        },
+        "language": {
+          "description": "画面の表示の言語。",
+          "$ref": "#/$defs/Language"
+        },
+        "os": {
+          "$ref": "#/$defs/Os"
+        },
+        "schemaVersion": {
+          "type": "integer",
+          "format": "uint32",
+          "minimum": 0
+        },
+        "screen": {
+          "description": "画面の幅の区分。",
+          "$ref": "#/$defs/ScreenClass"
+        },
+        "startupTime": {
+          "description": "起動にかかった時間の区分。",
+          "$ref": "#/$defs/DurationClass"
+        }
+      },
+      "required": [
+        "schemaVersion",
+        "app",
+        "browser",
+        "os",
+        "screen",
+        "language",
+        "startupTime"
+      ]
+    },
+    "StorageClass": {
+      "description": "保存容量の区分。",
+      "oneOf": [
+        {
+          "description": "100 MB 未満。",
+          "type": "string",
+          "const": "lt100mb"
+        },
+        {
+          "description": "100 MB 以上 1 GB 未満。",
+          "type": "string",
+          "const": "100mbTo1gb"
+        },
+        {
+          "description": "1 GB 以上 10 GB 未満。",
+          "type": "string",
+          "const": "1to10gb"
+        },
+        {
+          "description": "10 GB 以上。",
+          "type": "string",
+          "const": "ge10gb"
+        }
+      ]
+    },
+    "WeeksClass": {
+      "description": "このブラウザで使った週の数の区分。",
+      "oneOf": [
+        {
+          "description": "1 週。",
+          "type": "string",
+          "const": "1"
+        },
+        {
+          "description": "2〜4 週。",
+          "type": "string",
+          "const": "2to4"
+        },
+        {
+          "description": "5〜12 週。",
+          "type": "string",
+          "const": "5to12"
+        },
+        {
+          "description": "13 週以上。",
+          "type": "string",
+          "const": "ge13"
+        }
+      ]
+    }
+  }
+}

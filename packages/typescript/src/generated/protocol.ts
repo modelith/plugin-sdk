@@ -4,6 +4,8 @@
 export const API_VERSION = "0";
 export const PLUGIN_ID_PATTERN = "^[a-z][a-z0-9-]*(\\.[a-z][a-z0-9-]*)+$";
 export const RULE_ID_PATTERN = "^[a-z0-9][a-z0-9-]*$";
+export const USAGE_SCHEMA_VERSION = 1;
+export const COUNT_MAX = 1000000;
 
 export type PluginId = string;
 
@@ -281,3 +283,185 @@ label?: string, } | { "type": "commandDone", requestId: number, } | { "type": "i
  * ファイルの中身（base64）。
  */
 base64: string, } | { "type": "failed", requestId: number, message: string, } | { "type": "storageGet", requestId: number, key: string, } | { "type": "storageSet", requestId: number, key: string, value: unknown, } | { "type": "notify", level: NotifyLevel, message: string, };
+
+export type Count = number;
+
+export type Channel = "stable" | "rc" | "preview";
+
+export type AppInfo = { 
+/**
+ * アプリの版（SemVer）。
+ */
+version: string, channel: Channel, };
+
+export type Browser = "chrome" | "edge" | "firefox" | "safari" | "other";
+
+export type Os = "windows" | "macos" | "linux" | "android" | "ios" | "other";
+
+export type ScreenClass = "phone" | "tablet" | "desktop";
+
+export type Language = "ja" | "en" | "other";
+
+export type OnboardingStep = "sampleOpened" | "textWritten" | "diagramOpened" | "saved" | "folderOpened";
+
+export type DurationClass = "lt1s" | "1to3s" | "3to10s" | "ge10s";
+
+export type SizeClass = "lt10kb" | "10to100kb" | "100kbTo1mb" | "ge1mb";
+
+export type WeeksClass = "1" | "2to4" | "5to12" | "ge13";
+
+export type AmountClass = "0" | "1" | "2to10" | "11to100" | "101to1000" | "ge1001";
+
+export type StorageClass = "lt100mb" | "100mbTo1gb" | "1to10gb" | "ge10gb";
+
+export type Deployment = "docker" | "binary";
+
+export type Login = "accounts" | "oidc";
+
+export type ErrorKind = "uncaughtError" | "unhandledRejection" | "wasmPanic";
+
+export type DiagramViews = { trace: Count, structure: Count, control: Count, ibd: Count, behavior: Count, seq: Count, afv: Count, stm: Count, all: Count, };
+
+export type Edits = { 
+/**
+ * 要素の追加。
+ */
+add: Count, 
+/**
+ * 関係の追加。
+ */
+relate: Count, rename: Count, delete: Count, undo: Count, };
+
+export type Exports = { svg: Count, png: Count, jpeg: Count, drawio: Count, };
+
+export type Checks = { runs: Count, 
+/**
+ * 問題が 0 件だった回数。
+ */
+noProblems: Count, 
+/**
+ * 1〜9 件だった回数。
+ */
+problems1To9: Count, 
+/**
+ * 10〜99 件だった回数。
+ */
+problems10To99: Count, 
+/**
+ * 100 件以上だった回数。
+ */
+problems100OrMore: Count, };
+
+export type PluginUse = { 
+/**
+ * 公開の登録簿にあるプラグインの ID。
+ */
+id: PluginId, uses: Count, };
+
+export type PluginUsage = { listed: Array<PluginUse>, unlisted: Count, };
+
+export type ParseTime = { fileSize: SizeClass, duration: DurationClass, count: Count, };
+
+export type StackFrame = { 
+/**
+ * アプリの組み立て物の中のファイル（例: `assets/index-3f2a.js`）。利用者のファイルの名前は入らない。
+ */
+module: string, line: number, column: number, };
+
+export type StartupReport = { schemaVersion: number, app: AppInfo, browser: Browser, os: Os, 
+/**
+ * 画面の幅の区分。
+ */
+screen: ScreenClass, 
+/**
+ * 画面の表示の言語。
+ */
+language: Language, 
+/**
+ * 起動にかかった時間の区分。
+ */
+startupTime: DurationClass, };
+
+export type DailyReport = { schemaVersion: number, app: AppInfo, 
+/**
+ * その日に初めて起きた、使い始めの段階（同じ段階は 1 回だけ）。
+ */
+onboarding: Array<OnboardingStep>, 
+/**
+ * 図の種類ごとの表示の回数。
+ */
+diagramViews: DiagramViews, 
+/**
+ * 操作の回数。
+ */
+edits: Edits, 
+/**
+ * エクスポートの形式ごとの回数。
+ */
+exports: Exports, 
+/**
+ * チェックの実行。
+ */
+checks: Checks, 
+/**
+ * プラグインの利用。
+ */
+plugins: PluginUsage, 
+/**
+ * AI による書き換えの回数。
+ */
+aiRewrites: Count, 
+/**
+ * 解析にかかった時間の区分ごとの回数（ファイルの大きさの区分ごと）。
+ */
+parseTimes: Array<ParseTime>, 
+/**
+ * wasm を読み込めなかった回数。
+ */
+wasmLoadFailures: Count, 
+/**
+ * このブラウザで使った週の数の区分（ID を持たずに、続けて使われているかを測る）。
+ */
+weeksUsed: WeeksClass, 
+/**
+ * このブラウザで初めて使った月（`YYYY-MM`）。
+ */
+firstMonth: string, };
+
+export type ErrorReport = { schemaVersion: number, app: AppInfo, kind: ErrorKind, 
+/**
+ * スタックトレース（内側から外側へ）。
+ */
+frames: Array<StackFrame>, };
+
+export type ServerDailyReport = { schemaVersion: number, 
+/**
+ * 起動ごとに作るランダムな ID（UUID）。端末やサーバに残す ID ではない。
+ */
+instanceId: string, 
+/**
+ * サーバの版（SemVer）。
+ */
+version: string, os: Os, deployment: Deployment, login: Login, 
+/**
+ * 利用者の数の区分。
+ */
+users: AmountClass, 
+/**
+ * 7 日以内に使った人の数の区分。
+ */
+activeUsers7d: AmountClass, 
+/**
+ * プロジェクトの数の区分。
+ */
+projects: AmountClass, 
+/**
+ * 保存容量の区分。
+ */
+storage: StorageClass, 
+/**
+ * プラグインの数の区分。
+ */
+plugins: AmountClass, };
+
+export type UsageReport = { "type": "startup" } & StartupReport | { "type": "daily" } & DailyReport | { "type": "error" } & ErrorReport | { "type": "serverDaily" } & ServerDailyReport;
