@@ -241,3 +241,37 @@ describe("usage report schema", () => {
     expect(dimensions.sort()).toEqual(["appVersion", "channel", "client"]);
   });
 });
+
+describe("read output schemas", () => {
+  const ajv = new Ajv2020.default({ strict: false });
+  const outline = ajv.compile(readJson("schema/project-outline.schema.json"));
+  const detail = ajv.compile(readJson("schema/element-detail.schema.json"));
+  const problem = ajv.compile(readJson("schema/problem-report.schema.json"));
+  const element = readJson("examples", "read.element-detail.json") as Record<string, unknown>;
+
+  it.each([
+    ["read.project-outline.json", outline, readJson("examples", "read.project-outline.json")],
+    ["read.element-detail.json", detail, element],
+    ...(readJson("examples", "read.problems.json") as unknown[]).map((p, i) => [`read.problems.json[${i}]`, problem, p] as const),
+  ] as const)("accepts %s", (_: string, validate, json: unknown) => {
+    // Arrange
+    const body = json;
+    // Act
+    const valid = validate(body);
+    // Assert
+    expect(valid, JSON.stringify(validate.errors)).toBe(true);
+  });
+
+  it.each([
+    ["an unknown relation direction", { relations: [{ kind: "satisfy", direction: "both", other: "A" }] }],
+    ["a missing qualified name", { qualifiedName: undefined }],
+    ["a range without an end", { range: { start: { line: 0, character: 0 } } }],
+  ])("element detail rejects %s", (_: string, change: object) => {
+    // Arrange（異常系: Rust 側の read.rs のテストと同じ同値クラス）
+    const body = JSON.parse(JSON.stringify({ ...element, ...change }));
+    // Act
+    const valid = detail(body);
+    // Assert
+    expect(valid).toBe(false);
+  });
+});

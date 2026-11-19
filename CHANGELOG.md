@@ -8,6 +8,13 @@ Before 1.0.0 (`apiVersion` `"0"`), any release may change the contract.
 
 ## [Unreleased]
 
+### Added
+
+- Outputs of reading and checking a model, shared by AI clients (MCP), the app and the server (Modelith's ADR-0024):
+  `ProjectOutline` (files, elements, diagrams), `ElementSummary`, `ElementDetail` (doc, type, phase, members, ports,
+  relations), `ElementRelation`, `DiagramSummary` and `ProblemReport`, with the JSON Schemas `project-outline`,
+  `element-detail` and `problem-report`. Unknown fields are ignored.
+
 ## [0.1.0] - 2026-11-19
 
 The first release.

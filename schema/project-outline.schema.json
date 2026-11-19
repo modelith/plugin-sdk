@@ -1,0 +1,148 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "ProjectOutline",
+  "description": "プロジェクトの概要。",
+  "type": "object",
+  "properties": {
+    "diagrams": {
+      "description": "テキストに書いた図（view）。",
+      "type": "array",
+      "default": [],
+      "items": {
+        "$ref": "#/$defs/DiagramSummary"
+      }
+    },
+    "elements": {
+      "description": "定義と用法（入れ子の要素も含む）。",
+      "type": "array",
+      "default": [],
+      "items": {
+        "$ref": "#/$defs/ElementSummary"
+      }
+    },
+    "files": {
+      "type": "array",
+      "default": [],
+      "items": {
+        "$ref": "#/$defs/ProjectFile"
+      }
+    }
+  },
+  "$defs": {
+    "DiagramSummary": {
+      "description": "図（view）の概要。",
+      "type": "object",
+      "properties": {
+        "file": {
+          "type": "string"
+        },
+        "kind": {
+          "description": "図の種類。view の型の名前（例: `GeneralView`・`InterconnectionView`）。",
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "qualifiedName": {
+          "type": "string"
+        },
+        "range": {
+          "$ref": "#/$defs/Range"
+        }
+      },
+      "required": [
+        "name",
+        "qualifiedName",
+        "kind",
+        "file",
+        "range"
+      ]
+    },
+    "ElementSummary": {
+      "description": "要素の概要。",
+      "type": "object",
+      "properties": {
+        "file": {
+          "description": "要素を書いたファイル（[`ProjectFile`] の `path`）。",
+          "type": "string"
+        },
+        "kind": {
+          "description": "要素の種類（例: `part def`）。[`crate::ModelElement`] の `kind` と同じ言葉。",
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "qualifiedName": {
+          "description": "修飾名（例: `Shop::Cart`）。",
+          "type": "string"
+        },
+        "range": {
+          "description": "テキスト上の位置。",
+          "$ref": "#/$defs/Range"
+        },
+        "shortName": {
+          "description": "短い名前（`<C1>`）。書いていなければ省く。",
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      },
+      "required": [
+        "qualifiedName",
+        "name",
+        "kind",
+        "file",
+        "range"
+      ]
+    },
+    "Position": {
+      "type": "object",
+      "properties": {
+        "character": {
+          "type": "integer",
+          "format": "uint32",
+          "minimum": 0
+        },
+        "line": {
+          "type": "integer",
+          "format": "uint32",
+          "minimum": 0
+        }
+      },
+      "required": [
+        "line",
+        "character"
+      ]
+    },
+    "ProjectFile": {
+      "description": "プロジェクトのファイル。",
+      "type": "object",
+      "properties": {
+        "path": {
+          "description": "プロジェクトのフォルダからのパス（`/` 区切り）。",
+          "type": "string"
+        }
+      },
+      "required": [
+        "path"
+      ]
+    },
+    "Range": {
+      "type": "object",
+      "properties": {
+        "end": {
+          "$ref": "#/$defs/Position"
+        },
+        "start": {
+          "$ref": "#/$defs/Position"
+        }
+      },
+      "required": [
+        "start",
+        "end"
+      ]
+    }
+  }
+}
