@@ -2,7 +2,7 @@ import { readFileSync, readdirSync } from "node:fs";
 import { join } from "node:path";
 import Ajv2020 from "ajv/dist/2020.js";
 import { describe, expect, it } from "vitest";
-import { isValidPluginId } from "./index.js";
+import { COUNT_MAX, isValidPluginId } from "./index.js";
 
 const root = join(import.meta.dirname, "../../..");
 const readJson = (...p: string[]) => JSON.parse(readFileSync(join(root, ...p), "utf8"));
@@ -140,5 +140,104 @@ describe("JSON Schema accepts the shared examples", () => {
     const valid = manifest(json);
     // Assert
     expect(valid).toBe(false);
+  });
+});
+
+describe("usage report schema", () => {
+  const ajv = new Ajv2020.default({ strict: false });
+  const schema = readJson("schema/usage-report.schema.json") as { oneOf: Record<string, unknown>[]; $defs: Record<string, { properties: Record<string, Record<string, unknown>> }> };
+  const report = ajv.compile(schema);
+  const reports = readJson("examples", "usage-reports.json") as { kind: string }[];
+  const startup = reports.find((r) => r.kind === "startup");
+
+  it.each(reports.map((r, i) => [`usage-reports.json[${i}] ${r.kind}`, r] as const))("accepts %s", (_: string, json: unknown) => {
+    // Arrange
+    const body = json;
+    // Act
+    const valid = report(body);
+    // Assert
+    expect(valid, JSON.stringify(report.errors)).toBe(true);
+  });
+
+  it("ignores unknown fields from a newer sender", () => {
+    // Arrange
+    const body = { ...startup, newField: 1 };
+    // Act
+    const valid = report(body);
+    // Assert
+    expect(valid, JSON.stringify(report.errors)).toBe(true);
+  });
+
+  it.each([
+    ["free text in a class", { startupTime: "2.3 seconds" }],
+    ["a missing schemaVersion", { schemaVersion: undefined }],
+    ["an unknown browser", { browser: "netscape" }],
+    ["a missing client", { client: undefined }],
+    ["an appVersion that is not a version", { appVersion: "my build" }],
+  ])("rejects %s", (_: string, change: object) => {
+    // Arrange（異常系: Rust 側の usage.rs のテストと同じ同値クラス）
+    const body = JSON.parse(JSON.stringify({ ...startup, ...change }));
+    // Act
+    const valid = report(body);
+    // Assert
+    expect(valid).toBe(false);
+  });
+
+  it.each([
+    ["the maximum", COUNT_MAX, true],
+    ["the maximum + 1", COUNT_MAX + 1, false],
+    ["-1", -1, false],
+  ])("a count of %s is %s", (_: string, n: number, expected: boolean) => {
+    // Arrange（境界値）
+    const body = { ...reports.find((r) => r.kind === "daily"), aiRewrites: n };
+    // Act
+    const valid = report(body);
+    // Assert
+    expect(valid).toBe(expected);
+  });
+
+  it.each([
+    ["a repeated onboarding step", "daily", { onboarding: ["saved", "saved"] }, false],
+    ["a frame line at the maximum", "error", { frames: [{ module: "assets/a.js", line: 10_000_000 }] }, true],
+    ["a frame line over the maximum", "error", { frames: [{ module: "assets/a.js", line: 10_000_001 }] }, false],
+    ["a module path over 120 characters", "error", { frames: [{ module: "a".repeat(121) }] }, false],
+    ["a first quarter", "daily", { firstQuarter: "2026-Q1" }, true],
+    ["a first month instead of a quarter", "daily", { firstQuarter: "2026-10" }, false],
+    ["an appVersion over 32 characters", "startup", { appVersion: `1.0.0-${"a".repeat(27)}` }, false],
+  ])("%s is valid: %s", (_: string, kind: string, change: object, expected: boolean) => {
+    // Arrange（境界値・異常系）
+    const body = { ...reports.find((r) => r.kind === kind), ...change };
+    // Act
+    const valid = report(body);
+    // Assert
+    expect(valid).toBe(expected);
+  });
+
+  it("annotates when, at which level and how large each report is", () => {
+    // Arrange
+    const variants = schema.oneOf;
+    // Act
+    const annotations = Object.fromEntries(
+      variants.map((v) => [
+        (v.properties as { kind: { const: string } }).kind.const,
+        [v["x-modelith-when"], v["x-modelith-level"], v["x-modelith-max-bytes"]],
+      ]),
+    );
+    // Assert
+    expect(annotations).toEqual({
+      startup: ["startup", "all", 1024],
+      daily: ["daily", "all", 8192],
+      error: ["error", "error", 4096],
+      serverDaily: ["daily", "all", 2048],
+    });
+  });
+
+  it.each(["StartupReport", "DailyReport", "ErrorReport", "ServerDailyReport"])("%s marks only the sender as dimensions", (name: string) => {
+    // Arrange
+    const properties = schema.$defs[name]?.properties ?? {};
+    // Act
+    const dimensions = Object.keys(properties).filter((k) => properties[k]?.["x-modelith-dimension"] === true);
+    // Assert
+    expect(dimensions.sort()).toEqual(["appVersion", "channel", "client"]);
   });
 });

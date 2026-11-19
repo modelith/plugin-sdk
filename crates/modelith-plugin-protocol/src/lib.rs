@@ -12,6 +12,7 @@ mod manifest;
 mod message;
 mod registry;
 mod rules;
+pub mod usage;
 
 pub use edit::{Diagnostic, DiagnosticSeverity, Position, Range, TextEdit};
 pub use id::{PLUGIN_ID_PATTERN, PluginId, PluginIdError};
@@ -28,6 +29,7 @@ pub use rules::{
     CountRange, ElementMatch, OneOrMany, RULE_ID_PATTERN, Requirement, Rule, RuleId, RuleIdError,
     RuleSet,
 };
+pub use usage::{USAGE_SCHEMA_VERSION, UsageReport};
 
 /// このクレートが定義するプラグイン API のバージョン（SDK の MAJOR と同じ値）。
 /// マニフェストの `apiVersion` はこの値と一致しなければならない。

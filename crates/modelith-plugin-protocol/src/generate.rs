@@ -3,6 +3,7 @@
 use schemars::schema_for;
 use ts_rs::{Config, TS};
 
+use crate::usage::*;
 use crate::*;
 
 /// 生成するファイルの一覧（リポジトリルートからの相対パス, 内容）。
@@ -24,6 +25,10 @@ pub fn files() -> Vec<(&'static str, String)> {
         (
             "schema/plugin-message.schema.json",
             json(schema_for!(PluginMessage)),
+        ),
+        (
+            "schema/usage-report.schema.json",
+            json(schema_for!(UsageReport)),
         ),
         (
             "packages/typescript/src/generated/protocol.ts",
@@ -77,6 +82,40 @@ fn typescript() -> String {
         NotifyLevel::decl(&cfg),
         HostMessage::decl(&cfg),
         PluginMessage::decl(&cfg),
+        Count::decl(&cfg),
+        Channel::decl(&cfg),
+        Client::decl(&cfg),
+        Sender::decl(&cfg),
+        SendLevel::decl(&cfg),
+        Browser::decl(&cfg),
+        Os::decl(&cfg),
+        ScreenClass::decl(&cfg),
+        Language::decl(&cfg),
+        OnboardingStep::decl(&cfg),
+        DurationClass::decl(&cfg),
+        SizeClass::decl(&cfg),
+        WeeksClass::decl(&cfg),
+        AmountClass::decl(&cfg),
+        StorageClass::decl(&cfg),
+        Deployment::decl(&cfg),
+        LoginMethods::decl(&cfg),
+        ParseDurationClass::decl(&cfg),
+        ErrorName::decl(&cfg),
+        ErrorKind::decl(&cfg),
+        AutoViews::decl(&cfg),
+        CreatedViews::decl(&cfg),
+        Edits::decl(&cfg),
+        Layout::decl(&cfg),
+        Saves::decl(&cfg),
+        Exports::decl(&cfg),
+        Checks::decl(&cfg),
+        ParseTime::decl(&cfg),
+        StackFrame::decl(&cfg),
+        StartupReport::decl(&cfg),
+        DailyReport::decl(&cfg),
+        ErrorReport::decl(&cfg),
+        ServerDailyReport::decl(&cfg),
+        UsageReport::decl(&cfg),
     ];
     let mut out = String::from(
         "// 生成物。編集しないこと。定義元: crates/modelith-plugin-protocol\n\
@@ -85,7 +124,9 @@ fn typescript() -> String {
     out.push_str(&format!(
         "export const API_VERSION = \"{API_VERSION}\";\n\
          export const PLUGIN_ID_PATTERN = {PLUGIN_ID_PATTERN:?};\n\
-         export const RULE_ID_PATTERN = {RULE_ID_PATTERN:?};\n\n"
+         export const RULE_ID_PATTERN = {RULE_ID_PATTERN:?};\n\
+         export const USAGE_SCHEMA_VERSION = {USAGE_SCHEMA_VERSION};\n\
+         export const COUNT_MAX = {COUNT_MAX};\n\n"
     ));
     for d in decls {
         out.push_str("export ");

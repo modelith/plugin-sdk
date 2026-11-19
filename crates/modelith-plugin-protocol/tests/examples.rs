@@ -6,7 +6,7 @@
 use std::path::Path;
 
 use modelith_plugin_protocol::{
-    HostMessage, PluginManifest, PluginMessage, RegistryEntry, RuleSet,
+    HostMessage, PluginManifest, PluginMessage, RegistryEntry, RuleSet, UsageReport,
 };
 use serde::{Serialize, de::DeserializeOwned};
 use serde_json::Value;
@@ -89,6 +89,16 @@ fn plugin_messages_round_trip() {
     let name = "messages.plugin.json";
     // Act
     let errors = round_trip_errors::<PluginMessage>(name);
+    // Assert
+    assert!(errors.is_empty(), "{errors:?}");
+}
+
+#[test]
+fn usage_reports_round_trip() {
+    // Arrange
+    let name = "usage-reports.json";
+    // Act
+    let errors = round_trip_errors::<UsageReport>(name);
     // Assert
     assert!(errors.is_empty(), "{errors:?}");
 }
