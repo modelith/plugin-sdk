@@ -152,6 +152,7 @@ npm install --save-dev https://github.com/modelith/plugin-sdk/releases/download/
 | [`host-message`](schema/host-message.schema.json) / [`plugin-message`](schema/plugin-message.schema.json) | Messages between Modelith and a `browser` plugin |
 | [`registry-entry`](schema/registry-entry.schema.json) | An entry in the plugin registry |
 | [`project-outline`](schema/project-outline.schema.json) / [`element-detail`](schema/element-detail.schema.json) / [`problem-report`](schema/problem-report.schema.json) | What reading and checking a model returns, to AI clients (MCP), the app and the server (not used by plugins) |
+| [`edit-request`](schema/edit-request.schema.json) / [`edit-proposal`](schema/edit-proposal.schema.json) | What writing a model takes and returns (propose, then write), for AI clients (MCP), the app and the server (not used by plugins) |
 | [`usage-report`](schema/usage-report.schema.json) | Usage data the Modelith app and server send when the user allows it (not used by plugins) |
 
 ## Versioning

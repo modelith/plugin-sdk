@@ -1,0 +1,162 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "EditProposal",
+  "description": "提案の結果。何も書かずに返す。",
+  "type": "object",
+  "properties": {
+    "changes": {
+      "description": "ファイルごとの差分。",
+      "type": "array",
+      "default": [],
+      "items": {
+        "$ref": "#/$defs/FileChange"
+      }
+    },
+    "problems": {
+      "description": "提案を当てたあとの、プロジェクトの問題の一覧。",
+      "type": "array",
+      "default": [],
+      "items": {
+        "$ref": "#/$defs/ProblemReport"
+      }
+    }
+  },
+  "$defs": {
+    "Diagnostic": {
+      "description": "検査ルールなどが報告する診断。",
+      "type": "object",
+      "properties": {
+        "code": {
+          "description": "ルール ID など。",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "message": {
+          "type": "string"
+        },
+        "range": {
+          "$ref": "#/$defs/Range"
+        },
+        "severity": {
+          "$ref": "#/$defs/DiagnosticSeverity"
+        },
+        "source": {
+          "description": "報告元のプラグイン ID など。",
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      },
+      "required": [
+        "range",
+        "severity",
+        "message"
+      ]
+    },
+    "DiagnosticSeverity": {
+      "type": "string",
+      "enum": [
+        "error",
+        "warning",
+        "information",
+        "hint"
+      ]
+    },
+    "FileChange": {
+      "description": "1 つのファイルへの差分。",
+      "type": "object",
+      "properties": {
+        "baseVersion": {
+          "description": "`edits` が前提にするテキストの版。中身は決めない文字列で、作った側が書き込むときに今の版と比べる。",
+          "type": "string"
+        },
+        "edits": {
+          "description": "当てる編集（位置は `baseVersion` のテキストのもの）。",
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/TextEdit"
+          }
+        },
+        "file": {
+          "description": "プロジェクトのフォルダからのパス（`/` 区切り）。",
+          "type": "string"
+        }
+      },
+      "required": [
+        "file",
+        "baseVersion",
+        "edits"
+      ]
+    },
+    "Position": {
+      "type": "object",
+      "properties": {
+        "character": {
+          "type": "integer",
+          "format": "uint32",
+          "minimum": 0
+        },
+        "line": {
+          "type": "integer",
+          "format": "uint32",
+          "minimum": 0
+        }
+      },
+      "required": [
+        "line",
+        "character"
+      ]
+    },
+    "ProblemReport": {
+      "description": "確かめた結果の問題 1 件。問題の種類のコードは [`Diagnostic`] の `code` に入る。",
+      "type": "object",
+      "properties": {
+        "diagnostic": {
+          "$ref": "#/$defs/Diagnostic"
+        },
+        "file": {
+          "description": "問題のあるファイル。",
+          "type": "string"
+        }
+      },
+      "required": [
+        "file",
+        "diagnostic"
+      ]
+    },
+    "Range": {
+      "type": "object",
+      "properties": {
+        "end": {
+          "$ref": "#/$defs/Position"
+        },
+        "start": {
+          "$ref": "#/$defs/Position"
+        }
+      },
+      "required": [
+        "start",
+        "end"
+      ]
+    },
+    "TextEdit": {
+      "description": "プラグインが返す変更案。ホストが検証してから適用する。",
+      "type": "object",
+      "properties": {
+        "newText": {
+          "type": "string"
+        },
+        "range": {
+          "$ref": "#/$defs/Range"
+        }
+      },
+      "required": [
+        "range",
+        "newText"
+      ]
+    }
+  }
+}
