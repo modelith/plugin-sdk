@@ -14,6 +14,10 @@ Before 1.0.0 (`apiVersion` `"0"`), any release may change the contract.
   `ProjectOutline` (files, elements, diagrams), `ElementSummary`, `ElementDetail` (doc, type, phase, members, ports,
   relations), `ElementRelation`, `DiagramSummary` and `ProblemReport`, with the JSON Schemas `project-outline`,
   `element-detail` and `problem-report`. Unknown fields are ignored.
+- Inputs and outputs of writing a model, in two steps (propose, then write; Modelith's ADR-0024): `EditRequest`
+  (`addElement`, `addRelation`, `rename`, `delete`, `setDoc`, `replaceText`, pointing at elements by qualified name),
+  `EditProposal` (file changes and the problems after applying them) and `FileChange` (`TextEdit`s on a `baseVersion`),
+  with the JSON Schemas `edit-request` and `edit-proposal`. Unknown fields are ignored.
 
 ## [0.1.0] - 2026-11-19
 

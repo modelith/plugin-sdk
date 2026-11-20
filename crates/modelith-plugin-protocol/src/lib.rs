@@ -14,6 +14,7 @@ mod read;
 mod registry;
 mod rules;
 pub mod usage;
+mod write;
 
 pub use edit::{Diagnostic, DiagnosticSeverity, Position, Range, TextEdit};
 pub use id::{PLUGIN_ID_PATTERN, PluginId, PluginIdError};
@@ -35,6 +36,7 @@ pub use rules::{
     RuleSet,
 };
 pub use usage::{USAGE_SCHEMA_VERSION, UsageReport};
+pub use write::{EditProposal, EditRequest, FileChange};
 
 /// このクレートが定義するプラグイン API のバージョン（SDK の MAJOR と同じ値）。
 /// マニフェストの `apiVersion` はこの値と一致しなければならない。

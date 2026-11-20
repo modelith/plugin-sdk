@@ -275,3 +275,49 @@ describe("read output schemas", () => {
     expect(valid).toBe(false);
   });
 });
+
+describe("write schemas", () => {
+  const ajv = new Ajv2020.default({ strict: false });
+  const request = ajv.compile(readJson("schema/edit-request.schema.json"));
+  const proposal = ajv.compile(readJson("schema/edit-proposal.schema.json"));
+  const requests = readJson("examples", "write.requests.json") as { type: string }[];
+
+  it.each(requests.map((r, i) => [`write.requests.json[${i}] ${r.type}`, r] as const))("accepts %s", (_: string, json: unknown) => {
+    // Arrange
+    const body = json;
+    // Act
+    const valid = request(body);
+    // Assert
+    expect(valid, JSON.stringify(request.errors)).toBe(true);
+  });
+
+  it("accepts write.proposal.json", () => {
+    // Arrange
+    const body: unknown = readJson("examples", "write.proposal.json");
+    // Act
+    const valid = proposal(body);
+    // Assert
+    expect(valid, JSON.stringify(proposal.errors)).toBe(true);
+  });
+
+  it.each([
+    ["an unknown type", { type: "move", element: "A" }],
+    ["a rename without the new name", { type: "rename", element: "A" }],
+  ])("edit request rejects %s", (_: string, json: unknown) => {
+    // Arrange（異常系: Rust 側の write.rs のテストと同じ同値クラス）
+    const body = json;
+    // Act
+    const valid = request(body);
+    // Assert
+    expect(valid).toBe(false);
+  });
+
+  it("edit proposal rejects a change without baseVersion", () => {
+    // Arrange
+    const body = { changes: [{ file: "a.sysml", edits: [] }] };
+    // Act
+    const valid = proposal(body);
+    // Assert
+    expect(valid).toBe(false);
+  });
+});

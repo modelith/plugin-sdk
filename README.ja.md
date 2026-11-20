@@ -142,6 +142,7 @@ npm install --save-dev https://github.com/modelith/plugin-sdk/releases/download/
 | [`host-message`](schema/host-message.schema.json) / [`plugin-message`](schema/plugin-message.schema.json) | Modelith と `browser` プラグインの間のメッセージ |
 | [`registry-entry`](schema/registry-entry.schema.json) | プラグインレジストリの索引エントリ |
 | [`project-outline`](schema/project-outline.schema.json) / [`element-detail`](schema/element-detail.schema.json) / [`problem-report`](schema/problem-report.schema.json) | モデルを読む・確かめる操作の出力。AI のクライアント（MCP）・アプリ・サーバが使う（プラグインは使わない） |
+| [`edit-request`](schema/edit-request.schema.json) / [`edit-proposal`](schema/edit-proposal.schema.json) | モデルを書く操作（提案 → 書き込み）の入出力。AI のクライアント（MCP）・アプリ・サーバが使う（プラグインは使わない） |
 | [`usage-report`](schema/usage-report.schema.json) | 利用者が許したときに Modelith のアプリとサーバが送る利用状況（プラグインは使わない） |
 
 ## バージョン
