@@ -1,11 +1,12 @@
 name: Release
 
-# main に打った vMAJOR.MINOR.PATCH のタグから、crate を crates.io に公開し、
-# TypeScript のパッケージ（npm pack の .tgz）を GitHub Release に添付する（npm のレジストリには出さない）。
-# 公開は release 環境で行う。環境の承認者が承認するまで公開しない（初期設定は CONTRIBUTING.md の「リリース」）。
+# メンテナがリリースの下書き（release-draft.yml が作る）を公開すると、そのとき作られた main のタグ vMAJOR.MINOR.PATCH から、
+# crate を crates.io に公開し、TypeScript のパッケージ（npm pack の .tgz）をそのリリースに添付する（npm のレジストリには出さない）。
+# 公開は release 環境で行う。環境の承認者が承認するまで公開しない（初期設定は CONTRIBUTING.md の「Releasing」）。
+# modelith の pages.yml と同じく、リリースの公開（release: published）で動く。
 on:
-  push:
-    tags: ["v*"]
+  release:
+    types: [published]
 
 concurrency:
   group: release-${{ github.ref }}
@@ -27,7 +28,7 @@ jobs:
       - name: Tag is on main
         run: |
           git merge-base --is-ancestor "$GITHUB_SHA" origin/main ||
-            { echo "ERROR: タグ $GITHUB_REF_NAME は main にありません。dev → main をマージしてから main に打ってください。" >&2; exit 1; }
+            { echo "ERROR: タグ $GITHUB_REF_NAME は main にありません。下書きは main のコミットを対象に作ってください（release-draft.yml）。" >&2; exit 1; }
       - name: Update rustup itself
         run: |
           rustup self update
@@ -79,18 +80,9 @@ jobs:
           else
             cargo publish -p modelith-plugin-protocol --locked
           fi
-      - name: Attach the TypeScript package to a GitHub Release
+      - name: Attach the TypeScript package to the release
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          version="${GITHUB_REF_NAME#v}"
           tgz=$(cd packages/typescript && npm pack --ignore-scripts --silent)
-          # リリースの本文は CHANGELOG.md のその版の節
-          awk -v v="$version" '$0 ~ "^## \\[" v "\\]" {on=1; next} /^## \[/ {on=0} on' CHANGELOG.md > notes.md
-          prerelease=""
-          [[ $version == *-* ]] && prerelease="--prerelease"
-          if gh release view "$GITHUB_REF_NAME" >/dev/null 2>&1; then
-            gh release upload "$GITHUB_REF_NAME" "packages/typescript/$tgz" --clobber
-          else
-            gh release create "$GITHUB_REF_NAME" "packages/typescript/$tgz" --verify-tag --title "$GITHUB_REF_NAME" --notes-file notes.md $prerelease
-          fi
+          gh release upload "$GITHUB_REF_NAME" "packages/typescript/$tgz" --clobber
