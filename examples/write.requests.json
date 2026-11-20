@@ -1,0 +1,33 @@
+[
+  {
+    "type": "addElement",
+    "kind": "part def",
+    "name": "Battery",
+    "parent": "Shop"
+  },
+  {
+    "type": "addRelation",
+    "kind": "satisfy",
+    "from": "Shop::Cart",
+    "to": "Shop::Requirements::HoldItems"
+  },
+  {
+    "type": "rename",
+    "element": "Shop::Cart",
+    "name": "Basket"
+  },
+  {
+    "type": "delete",
+    "element": "Shop::Cart::items"
+  },
+  {
+    "type": "setDoc",
+    "element": "Shop::Cart",
+    "doc": "買い物かご"
+  },
+  {
+    "type": "replaceText",
+    "file": "shop.sysml",
+    "text": "package Shop {\n    part def Cart;\n}\n"
+  }
+]

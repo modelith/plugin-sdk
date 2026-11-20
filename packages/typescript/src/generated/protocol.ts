@@ -394,6 +394,56 @@ export type ProblemReport = {
  */
 file: string, diagnostic: Diagnostic, };
 
+export type EditRequest = { "type": "addElement", 
+/**
+ * 要素の種類（例: `part def`）。[`crate::ElementSummary`] の `kind` と同じ言葉。
+ */
+kind: string, name: string, 
+/**
+ * 入れる先の要素の修飾名（package に限らない。受けない先は、書く側が断る）。
+ */
+parent: string, } | { "type": "addRelation", 
+/**
+ * 関係の種類。[`crate::ElementRelation`] の `kind` と同じ言葉。
+ */
+kind: string, 
+/**
+ * 関係が出る側の要素の修飾名（[`crate::RelationDirection::Outgoing`] の側）。
+ */
+from: string, 
+/**
+ * 関係が入る側の要素の修飾名。
+ */
+to: string, } | { "type": "rename", element: string, name: string, } | { "type": "delete", element: string, } | { "type": "setDoc", element: string, doc: string, } | { "type": "replaceText", 
+/**
+ * プロジェクトのフォルダからのパス（`/` 区切り）。
+ */
+file: string, text: string, };
+
+export type FileChange = { 
+/**
+ * プロジェクトのフォルダからのパス（`/` 区切り）。
+ */
+file: string, 
+/**
+ * `edits` が前提にするテキストの版。中身は決めない文字列で、作った側が書き込むときに今の版と比べる。
+ */
+baseVersion: string, 
+/**
+ * 当てる編集（位置は `baseVersion` のテキストのもの）。
+ */
+edits: Array<TextEdit>, };
+
+export type EditProposal = { 
+/**
+ * ファイルごとの差分。
+ */
+changes: Array<FileChange>, 
+/**
+ * 提案を当てたあとの、プロジェクトの問題の一覧。
+ */
+problems: Array<ProblemReport>, };
+
 export type Count = number;
 
 export type Channel = "stable" | "rc" | "preview";

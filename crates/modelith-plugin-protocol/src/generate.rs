@@ -39,6 +39,14 @@ pub fn files() -> Vec<(&'static str, String)> {
             json(schema_for!(ProblemReport)),
         ),
         (
+            "schema/edit-request.schema.json",
+            json(schema_for!(EditRequest)),
+        ),
+        (
+            "schema/edit-proposal.schema.json",
+            json(schema_for!(EditProposal)),
+        ),
+        (
             "schema/usage-report.schema.json",
             json(schema_for!(UsageReport)),
         ),
@@ -102,6 +110,9 @@ fn typescript() -> String {
         DiagramSummary::decl(&cfg),
         ProjectOutline::decl(&cfg),
         ProblemReport::decl(&cfg),
+        EditRequest::decl(&cfg),
+        FileChange::decl(&cfg),
+        EditProposal::decl(&cfg),
         Count::decl(&cfg),
         Channel::decl(&cfg),
         Client::decl(&cfg),

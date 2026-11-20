@@ -6,8 +6,8 @@
 use std::path::Path;
 
 use modelith_plugin_protocol::{
-    ElementDetail, HostMessage, PluginManifest, PluginMessage, ProblemReport, ProjectOutline,
-    RegistryEntry, RuleSet, UsageReport,
+    EditProposal, EditRequest, ElementDetail, HostMessage, PluginManifest, PluginMessage,
+    ProblemReport, ProjectOutline, RegistryEntry, RuleSet, UsageReport,
 };
 use serde::{Serialize, de::DeserializeOwned};
 use serde_json::Value;
@@ -137,6 +137,17 @@ fn problem_reports_round_trip() {
     let name = "read.problems.json";
     // Act
     let errors = round_trip_errors::<ProblemReport>(name);
+    // Assert
+    assert!(errors.is_empty(), "{errors:?}");
+}
+
+#[test]
+fn write_requests_and_proposal_round_trip() {
+    // Arrange
+    let names = ["write.requests.json", "write.proposal.json"];
+    // Act
+    let mut errors = round_trip_errors::<EditRequest>(names[0]);
+    errors.extend(round_trip_one::<EditProposal>(names[1]).err());
     // Assert
     assert!(errors.is_empty(), "{errors:?}");
 }
