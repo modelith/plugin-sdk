@@ -32,8 +32,8 @@ Modelith は、テキストと図を同期して編集できるオープンソ�
 
 > [!NOTE]
 > SDK は 1.0 未満（`apiVersion` は `"0"`）で、マイナーリリースの間でも契約が変わることがあります。
-> まだリリースしていません。crate は crates.io に、TypeScript のパッケージは [GitHub Releases](https://github.com/modelith/plugin-sdk/releases) に添付して出します
-> （npm のレジストリには出しません）。[インストール](#インストール) をご覧ください。
+> crate は crates.io に、TypeScript のパッケージは [GitHub Releases](https://github.com/modelith/plugin-sdk/releases) に添付して出しています
+> （npm のレジストリには出していません）。[インストール](#インストール) をご覧ください。
 
 ## プラグインの種類
 
@@ -118,17 +118,6 @@ npx esbuild src/index.ts --bundle --format=iife --outfile=dist/index.js
 順を追って作るときは、手引き（[rules プラグイン](docs/tutorials/rules-plugin.ja.md)・[browser プラグイン](docs/tutorials/browser-plugin.ja.md)）をご覧ください。
 
 ## インストール
-
-最初のリリースまでは、Git のリポジトリを使ってください。
-
-```toml
-# Rust（Cargo.toml）
-[dependencies]
-modelith-plugin-protocol = { git = "https://github.com/modelith/plugin-sdk", branch = "dev" }
-```
-
-TypeScript は、`packages/typescript` で `npm ci && npm run build` を実行して組み立ててください。
-最初のリリースの後は、次のように入れられます。
 
 ```sh
 cargo add modelith-plugin-protocol

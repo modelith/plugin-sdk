@@ -1,20 +1,15 @@
 #!/usr/bin/env bash
 # リリースの下書きを作る（CONTRIBUTING.md の「Releasing」）。.github/workflows/release-draft.yml が実行する。
-#   scripts/release-draft.sh --auto   main に push されたとき。crate の版の CHANGELOG の節に日付があり、
+#   scripts/release-draft.sh --auto   main に push されたとき。crate の版のリリースノートがあり、
 #                                     その版のリリースがまだ無ければ下書きを作る。それ以外は何もしない
-#   scripts/release-draft.sh <版>     手で起動したとき。下書きが無ければ作り、あれば本文だけを差し替える
+#   scripts/release-draft.sh <版>     手で起動したとき。下書きが無ければ作り、あれば本文と対象のコミット（下書きのとき）を差し替える
 #
-# 本文は CHANGELOG.md のその版の節。タグは、メンテナが下書きを公開（Publish）したときに作られ、
+# 本文は docs/releases/v<版>.md（利用者向けのリリースノート。細かな変更の一覧は CHANGELOG.md）。
+# 版を出す前に、CHANGELOG.md のその版の節に日付が入っていることも確かめる。
+# タグは、メンテナが下書きを公開（Publish）したときに作られ、
 # 公開すると .github/workflows/release.yml が crate を crates.io に出し、TS パッケージを添付する。
-# modelith の scripts/release-draft.sh と同じ流れ（ノートの置き場所だけが違う）。
+# modelith の scripts/release-draft.sh と同じ流れ。
 set -euo pipefail
-
-# 標準入力の CHANGELOG から、その版の節の本文（見出しの次の行から、次の `## [` の前まで）を出す。
-# 例: changelog_notes 0.1.0 <CHANGELOG.md
-changelog_notes() {
-  local version=$1
-  awk -v v="$version" 'index($0, "## [" v "]") == 1 {on=1; next} /^## \[/ {on=0} on'
-}
 
 # 標準入力の CHANGELOG で、その版の見出しに日付（`## [<版>] - YYYY-MM-DD`）があるか。0: ある、1: 無い。
 # 日付の無い（`Unreleased` の）版は、まだ出さない。
@@ -30,9 +25,14 @@ main() {
   local version=$arg
   [[ $arg == --auto ]] && version=$(sed -n 's/^version = "\(.*\)"$/\1/p' crates/modelith-plugin-protocol/Cargo.toml | head -n 1)
   local tag="v$version"
+  local notes="docs/releases/$tag.md"
 
+  if [[ ! -f $notes ]]; then
+    [[ $arg == --auto ]] && { echo "$notes が無いので、下書きは作りません（版を出す PR ではない）"; exit 0; }
+    echo "ERROR: リリースノート $notes がありません。" >&2
+    exit 1
+  fi
   if ! changelog_dated "$version" <CHANGELOG.md; then
-    [[ $arg == --auto ]] && { echo "CHANGELOG.md の $version に日付が無いので、下書きは作りません（版を出す PR ではない）"; exit 0; }
     echo "ERROR: CHANGELOG.md に '## [$version] - YYYY-MM-DD' の見出しがありません。" >&2
     exit 1
   fi
@@ -42,9 +42,6 @@ main() {
     exit 0
   fi
   scripts/check-versions.sh "$tag"
-  local notes
-  notes=$(mktemp)
-  changelog_notes "$version" <CHANGELOG.md >"$notes"
 
   local existing
   existing=$(gh release list --limit 100 --json tagName --jq ".[] | select(.tagName == \"$tag\") | .tagName")
@@ -52,7 +49,7 @@ main() {
     echo "リリース $tag は既にあります。本文を差し替えるときは、版を渡して手で起動してください"
     exit 0
   elif [[ -n $existing ]]; then
-    gh release edit "$tag" --notes-file "$notes"
+    gh release edit "$tag" --notes-file "$notes" --target "$(git rev-parse HEAD)"
     echo "リリース $tag の本文を差し替えました"
   else
     local prerelease=()
