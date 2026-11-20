@@ -75,16 +75,20 @@ the code, integration tests in `crates/*/tests/`, and the test design rules in
 
 ## Releasing
 
-The crate and the npm package are released together, with the same version, from a tag on `main`.
-Pushing the tag starts the [Release](.github/workflows/release.yml) workflow:
+The crate and the npm package are released together, with the same version, from `main`, the same way as Modelith itself
+([releasing.md](https://github.com/modelith/modelith/blob/dev/docs/development/releasing.md)):
+a release draft is created automatically, and publishing the draft creates the tag and starts the release.
 
-1. **verify**: the tag must be on `main` and match the version of both packages (`scripts/check-versions.sh <tag>`),
-   and `scripts/check.sh` must pass.
-2. **publish**: runs in the `release` environment, so it waits until a maintainer approves it.
-   It publishes the crate to crates.io (skipped if that version is already there) and creates a GitHub Release
-   with the TypeScript package (`npm pack`) attached and the version's `CHANGELOG.md` section as its notes
-   (re-attached if the release already exists), so a failed run can simply be re-run.
-   The TypeScript package is not published to the npm registry.
+- [Release draft](.github/workflows/release-draft.yml): when a change that dates a version's `CHANGELOG.md` section reaches `main`,
+  it creates a draft GitHub Release `v<version>` targeting that commit, with the section as its notes
+  (`scripts/release-draft.sh`). Run it by hand with a version to create the draft or replace its notes.
+- [Release](.github/workflows/release.yml), started by publishing the draft:
+  1. **verify**: the tag must be on `main` and match the version of both packages (`scripts/check-versions.sh <tag>`),
+     and `scripts/check.sh` must pass.
+  2. **publish**: runs in the `release` environment, so it waits until a maintainer approves it.
+     It publishes the crate to crates.io (skipped if that version is already there) and attaches the TypeScript package
+     (`npm pack`) to the release (replaced if already attached), so a failed run can simply be re-run.
+     The TypeScript package is not published to the npm registry.
 
 Steps:
 
@@ -92,7 +96,8 @@ Steps:
    and `packages/typescript/package.json` (and their lockfiles), and move the `Unreleased` entries in `CHANGELOG.md` under the new version
    with today's date. `scripts/check.sh` checks that both versions match. Merge the PR into `dev`.
 2. Open a PR from `dev` to `main`. **Merging it needs a maintainer's explicit approval**, and it is merged with a merge commit.
-3. Tag the merge commit on `main` and push the tag: `git tag v<version> <commit> && git push origin v<version>`.
+   Merging creates the release draft.
+3. A maintainer checks the draft and presses **Publish release**. This creates the tag `v<version>` on `main`.
 4. Approve the `publish` job when it asks, and check the new version on crates.io and the GitHub Release.
 5. Merge `main` back into `dev` with a merge commit.
 

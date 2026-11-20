@@ -1,0 +1,40 @@
+name: Release draft
+
+# リリースの下書きを作る（CONTRIBUTING.md の「Releasing」）。下書きの本文は CHANGELOG.md のその版の節。
+# - 版を出す変更（CHANGELOG の節に日付を入れたもの）が main に入ると、自動で下書きを作る（リリースがまだ無いとき）
+# - 手で起動すると、下書きが無ければ作り、あれば本文だけを差し替える
+# 公開（Publish）はメンテナが GitHub の画面で行い、公開するとタグが作られ、release.yml が動く。
+on:
+  push:
+    branches: [main]
+    paths: ["CHANGELOG.md", "crates/modelith-plugin-protocol/Cargo.toml"]
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "版（例: 0.1.0。先頭の v は付けない）"
+        required: true
+
+permissions:
+  contents: write
+
+concurrency:
+  group: release-draft
+  cancel-in-progress: false
+
+jobs:
+  draft:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: main
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version-file: .nvmrc
+          check-latest: true
+      - name: Create or update the release draft
+        run: scripts/release-draft.sh "${VERSION:---auto}"
+        env:
+          VERSION: ${{ inputs.version }}
+          GITHUB_REF_NAME: main
+          GH_TOKEN: ${{ github.token }}
