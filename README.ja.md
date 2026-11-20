@@ -32,8 +32,8 @@ Modelith は、テキストと図を同期して編集できるオープンソ�
 
 > [!NOTE]
 > SDK は 1.0 未満（`apiVersion` は `"0"`）で、マイナーリリースの間でも契約が変わることがあります。
-> crate は crates.io に、TypeScript のパッケージは [GitHub Releases](https://github.com/modelith/plugin-sdk/releases) に添付して出しています
-> （npm のレジストリには出していません）。[インストール](#インストール) をご覧ください。
+> crate は crates.io に、TypeScript のパッケージは npm（`modelith-plugin-sdk`）に出しています（0.1.0 までは `@modelith/plugin-sdk` という名前で、
+> [GitHub Releases](https://github.com/modelith/plugin-sdk/releases) に添付していました）。[インストール](#インストール) をご覧ください。
 
 ## プラグインの種類
 
@@ -84,7 +84,7 @@ Modelith の [検査ルールのリファレンス](https://github.com/modelith/
 ### browser プラグイン
 
 ```ts
-import { connectToHost, type Diagnostic } from "@modelith/plugin-sdk";
+import { connectToHost, type Diagnostic } from "modelith-plugin-sdk";
 
 const host = connectToHost(self);
 
@@ -121,9 +121,7 @@ npx esbuild src/index.ts --bundle --format=iife --outfile=dist/index.js
 
 ```sh
 cargo add modelith-plugin-protocol
-# TypeScript のパッケージは、npm のレジストリではなく GitHub Release に添付している。
-# 入れると @modelith/plugin-sdk という名前で入るので、import はそのまま使える。
-npm install --save-dev https://github.com/modelith/plugin-sdk/releases/download/v0.1.0/modelith-plugin-sdk-0.1.0.tgz
+npm install --save-dev modelith-plugin-sdk
 ```
 
 ## このリポジトリの構成
@@ -132,7 +130,7 @@ npm install --save-dev https://github.com/modelith/plugin-sdk/releases/download/
 | --- | --- |
 | [`crates/modelith-plugin-protocol`](crates/modelith-plugin-protocol) | 契約の唯一の定義元（Rust の型） |
 | [`schema/`](schema) | Rust の型から生成した JSON Schema |
-| [`packages/typescript`](packages/typescript) | `@modelith/plugin-sdk`（生成した TypeScript の型とヘルパー） |
+| [`packages/typescript`](packages/typescript) | `modelith-plugin-sdk`（生成した TypeScript の型とヘルパー） |
 | [`examples/`](examples) | マニフェスト・ルールファイル・索引エントリ・メッセージのサンプル（Rust とスキーマの両方で検証） |
 
 | スキーマ | 対象 |

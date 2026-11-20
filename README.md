@@ -32,8 +32,8 @@ The editor, plugin authors and the registry's CI all build on it.
 
 > [!NOTE]
 > The SDK is pre-1.0 (`apiVersion` `"0"`): the contract may still change between minor releases.
-> The crate is on crates.io, and the TypeScript package is attached to
-> [GitHub Releases](https://github.com/modelith/plugin-sdk/releases) (it is not on the npm registry) — see [Install](#install).
+> The crate is on crates.io and the TypeScript package on npm (`modelith-plugin-sdk`; up to 0.1.0 it was
+> `@modelith/plugin-sdk`, attached to [GitHub Releases](https://github.com/modelith/plugin-sdk/releases)) — see [Install](#install).
 
 ## What a plugin can be
 
@@ -84,7 +84,7 @@ Modelith's [check rule reference](https://github.com/modelith/modelith/blob/dev/
 ### A browser plugin
 
 ```ts
-import { connectToHost, type Diagnostic } from "@modelith/plugin-sdk";
+import { connectToHost, type Diagnostic } from "modelith-plugin-sdk";
 
 const host = connectToHost(self);
 
@@ -120,9 +120,7 @@ For a step-by-step walkthrough, follow the tutorials: [a rules plugin](docs/tuto
 
 ```sh
 cargo add modelith-plugin-protocol
-# The TypeScript package is attached to each GitHub Release, not published to the npm registry.
-# It still installs as @modelith/plugin-sdk, so imports stay the same.
-npm install --save-dev https://github.com/modelith/plugin-sdk/releases/download/v0.1.0/modelith-plugin-sdk-0.1.0.tgz
+npm install --save-dev modelith-plugin-sdk
 ```
 
 ## What's in this repository
@@ -131,7 +129,7 @@ npm install --save-dev https://github.com/modelith/plugin-sdk/releases/download/
 | --- | --- |
 | [`crates/modelith-plugin-protocol`](crates/modelith-plugin-protocol) | The single source of truth: the contract as Rust types |
 | [`schema/`](schema) | JSON Schemas generated from the Rust types |
-| [`packages/typescript`](packages/typescript) | `@modelith/plugin-sdk`: generated TypeScript types and helpers |
+| [`packages/typescript`](packages/typescript) | `modelith-plugin-sdk`: generated TypeScript types and helpers |
 | [`examples/`](examples) | Sample manifests, rule file, registry entry and messages, checked against both Rust and the schemas |
 
 | Schema | Describes |

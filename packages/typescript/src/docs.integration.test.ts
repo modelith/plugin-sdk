@@ -60,8 +60,8 @@ describe("TypeScript examples in the docs", () => {
           skipLibCheck: true,
           resolveJsonModule: true,
           paths: {
-            "@modelith/plugin-sdk": [src],
-            "@modelith/plugin-sdk/schema/*": [join(root, "schema/*")],
+            "modelith-plugin-sdk": [src],
+            "modelith-plugin-sdk/schema/*": [join(root, "schema/*")],
           },
         },
         files,
@@ -128,7 +128,7 @@ describe.each(["docs/tutorials/browser-plugin.md", "docs/tutorials/browser-plugi
   /** 手引きのプラグインを Worker の代わりに動かし、ホストの役で `messages` を送って、返ってきたものを集める。 */
   async function talk(messages: HostMessage[]): Promise<PluginMessage[]> {
     const file = join(work, `${doc.replaceAll(/[/.]/g, "_")}_run${loaded++}.ts`);
-    writeFileSync(file, code.replace('"@modelith/plugin-sdk"', JSON.stringify(src)));
+    writeFileSync(file, code.replace('"modelith-plugin-sdk"', JSON.stringify(src)));
     const listeners: ((event: { data: unknown }) => void)[] = [];
     const sent: PluginMessage[] = [];
     Object.assign(globalThis, {

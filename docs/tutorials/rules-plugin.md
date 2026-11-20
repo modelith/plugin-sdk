@@ -93,10 +93,10 @@ rules:
 - `part-has-ports`: every `part def` or `part` has at least one port.
 
 If you have Node.js, you can check the plugin folder before opening Modelith.
-`modelith-plugin validate` from `@modelith/plugin-sdk` reports mistakes in the manifest and the rule files, such as a misspelled key:
+`modelith-plugin validate` from `modelith-plugin-sdk` reports mistakes in the manifest and the rule files, such as a misspelled key:
 
 ```sh
-npx -p https://github.com/modelith/plugin-sdk/releases/download/v0.1.0/modelith-plugin-sdk-0.1.0.tgz modelith-plugin validate kettle/.modelith/plugins/com.example.kettle-checks
+npx -p modelith-plugin-sdk modelith-plugin validate kettle/.modelith/plugins/com.example.kettle-checks
 ```
 
 ## 3. See the results in Modelith
