@@ -79,8 +79,8 @@ The crate and the npm package are released together, with the same version, from
 ([releasing.md](https://github.com/modelith/modelith/blob/dev/docs/development/releasing.md)):
 a release draft is created automatically, and publishing the draft creates the tag and starts the release.
 
-- [Release draft](.github/workflows/release-draft.yml): when a change that dates a version's `CHANGELOG.md` section reaches `main`,
-  it creates a draft GitHub Release `v<version>` targeting that commit, with the section as its notes
+- [Release draft](.github/workflows/release-draft.yml): when a version's release notes (`docs/releases/v<version>.md`) reach `main`,
+  it creates a draft GitHub Release `v<version>` targeting that commit, with the notes as its body
   (`scripts/release-draft.sh`). Run it by hand with a version to create the draft or replace its notes.
 - [Release](.github/workflows/release.yml), started by publishing the draft:
   1. **verify**: the tag must be on `main` and match the version of both packages (`scripts/check-versions.sh <tag>`),
@@ -95,6 +95,8 @@ Steps:
 1. On a branch from `dev` (`chore/release-v<version>`), set the version in `crates/modelith-plugin-protocol/Cargo.toml`
    and `packages/typescript/package.json` (and their lockfiles), and move the `Unreleased` entries in `CHANGELOG.md` under the new version
    with today's date. `scripts/check.sh` checks that both versions match. Merge the PR into `dev`.
+   Write the release notes for users in `docs/releases/v<version>.md` (what changed for plugin authors, how to install,
+   anything to watch out for), and link to `CHANGELOG.md` for the full list.
 2. Open a PR from `dev` to `main`. **Merging it needs a maintainer's explicit approval**, and it is merged with a merge commit.
    Merging creates the release draft.
 3. A maintainer checks the draft and presses **Publish release**. This creates the tag `v<version>` on `main`.

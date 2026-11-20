@@ -98,9 +98,6 @@ Node.js があれば、Modelith で開く前にプラグインのフォルダを
 npx -p https://github.com/modelith/plugin-sdk/releases/download/v0.1.0/modelith-plugin-sdk-0.1.0.tgz modelith-plugin validate kettle/.modelith/plugins/com.example.kettle-checks
 ```
 
-最初のリリースまでは、[browser プラグインの手引き](browser-plugin.ja.md#1-プロジェクトを用意する) のとおりに組み立て、
-代わりに `node plugin-sdk/packages/typescript/dist/bin.js validate …` を実行します。
-
 ## 3. Modelith で結果を見る
 
 1. Chrome か Edge で <https://modelith.github.io/modelith/> を開き、`kettle` フォルダを開きます。

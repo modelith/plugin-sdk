@@ -99,9 +99,6 @@ If you have Node.js, you can check the plugin folder before opening Modelith.
 npx -p https://github.com/modelith/plugin-sdk/releases/download/v0.1.0/modelith-plugin-sdk-0.1.0.tgz modelith-plugin validate kettle/.modelith/plugins/com.example.kettle-checks
 ```
 
-Until the first release, build the SDK as described in [the browser plugin tutorial](browser-plugin.md#1-set-up-the-project)
-and run `node plugin-sdk/packages/typescript/dist/bin.js validate …` instead.
-
 ## 3. See the results in Modelith
 
 1. Open <https://modelith.github.io/modelith/> in Chrome or Edge and open the `kettle` folder.
