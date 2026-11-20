@@ -11,30 +11,16 @@
 その中で、プラグインと Modelith のやり取り、コードのまとめ方、権限の求め方を見ていきます。
 チェックだけでよければ、[rules プラグイン](rules-plugin.ja.md) の方が簡単です。
 
-[Node.js](https://nodejs.org/)・Git と、Chrome か Edge で開いた Modelith（<https://modelith.github.io/modelith/>）を使います。
+[Node.js](https://nodejs.org/) と、Chrome か Edge で開いた Modelith（<https://modelith.github.io/modelith/>）を使います。
 
 ## 1. プロジェクトを用意する
 
-SDK の最初のリリースまでは、このリポジトリから組み立てます。
-
-```sh
-git clone https://github.com/modelith/plugin-sdk
-npm ci --prefix plugin-sdk/packages/typescript
-npm run build --prefix plugin-sdk/packages/typescript
-```
-
-その隣に、プラグインのフォルダを作ります。
+プラグインのフォルダを作り、GitHub Release から SDK を入れます
+（npm のレジストリには出していませんが、`@modelith/plugin-sdk` という名前で入ります）。
 
 ```sh
 mkdir port-check && cd port-check
 npm init -y
-npm install --save-dev esbuild typescript ../plugin-sdk/packages/typescript
-```
-
-最初のリリースの後は、clone と組み立ての代わりに、GitHub Release から SDK を入れます
-（npm のレジストリには出していませんが、`@modelith/plugin-sdk` という名前で入ります）。
-
-```sh
 npm install --save-dev esbuild typescript https://github.com/modelith/plugin-sdk/releases/download/v0.1.0/modelith-plugin-sdk-0.1.0.tgz
 ```
 

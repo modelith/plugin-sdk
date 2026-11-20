@@ -18,8 +18,6 @@ Install it from the release's `.tgz`. It installs as `@modelith/plugin-sdk`, so 
 npm install --save-dev https://github.com/modelith/plugin-sdk/releases/download/v0.1.0/modelith-plugin-sdk-0.1.0.tgz
 ```
 
-Until the first release, build it from the repository: `npm ci && npm run build` in `packages/typescript`.
-
 ## Talk to Modelith from a `browser` plugin
 
 A `browser` plugin runs in a Web Worker. `connectToHost` gives it typed messages in both directions:

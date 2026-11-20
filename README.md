@@ -32,7 +32,7 @@ The editor, plugin authors and the registry's CI all build on it.
 
 > [!NOTE]
 > The SDK is pre-1.0 (`apiVersion` `"0"`): the contract may still change between minor releases.
-> Nothing is released yet. The crate will go to crates.io, and the TypeScript package will be attached to
+> The crate is on crates.io, and the TypeScript package is attached to
 > [GitHub Releases](https://github.com/modelith/plugin-sdk/releases) (it is not on the npm registry) — see [Install](#install).
 
 ## What a plugin can be
@@ -117,17 +117,6 @@ See [`examples/`](examples) for complete manifests, rule files and a full messag
 For a step-by-step walkthrough, follow the tutorials: [a rules plugin](docs/tutorials/rules-plugin.md) and [a browser plugin](docs/tutorials/browser-plugin.md).
 
 ## Install
-
-Until the first release, use the Git repository:
-
-```toml
-# Rust (Cargo.toml)
-[dependencies]
-modelith-plugin-protocol = { git = "https://github.com/modelith/plugin-sdk", branch = "dev" }
-```
-
-For TypeScript, build the package from source (`npm ci && npm run build` in `packages/typescript`).
-After the first release:
 
 ```sh
 cargo add modelith-plugin-protocol
