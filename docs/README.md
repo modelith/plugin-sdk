@@ -16,4 +16,4 @@ The exact behavior is specified in Modelith's documentation, and the types and s
 - [Check rules (rules plugins) and `modelith check`](https://github.com/modelith/modelith/blob/dev/docs/reference/check-rules.md)
 - [TypeScript plugins (browser plugins)](https://github.com/modelith/modelith/blob/dev/docs/reference/script-plugins.md)
 - [JSON Schemas](../schema) and [examples](../examples)
-- [`@modelith/plugin-sdk`](../packages/typescript) (TypeScript) and [`modelith-plugin-protocol`](../crates/modelith-plugin-protocol) (Rust)
+- [`modelith-plugin-sdk`](../packages/typescript) (TypeScript) and [`modelith-plugin-protocol`](../crates/modelith-plugin-protocol) (Rust)

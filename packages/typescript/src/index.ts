@@ -1,4 +1,4 @@
-// @modelith/plugin-sdk — Modelith プラグイン向けの型とヘルパー。
+// modelith-plugin-sdk — Modelith プラグイン向けの型とヘルパー。
 // 型は crates/modelith-plugin-protocol から生成している（src/generated/ は編集しない）。
 
 export * from "./generated/protocol.js";

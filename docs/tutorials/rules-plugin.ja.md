@@ -92,10 +92,10 @@ rules:
 - `part-has-ports`：どの `part def`・`part` も、ポートを 1 つ以上持つこと。
 
 Node.js があれば、Modelith で開く前にプラグインのフォルダを検査できます。
-`@modelith/plugin-sdk` の `modelith-plugin validate` が、マニフェストとルールのファイルの誤り（キーの綴りの誤りなど）を知らせます。
+`modelith-plugin-sdk` の `modelith-plugin validate` が、マニフェストとルールのファイルの誤り（キーの綴りの誤りなど）を知らせます。
 
 ```sh
-npx -p https://github.com/modelith/plugin-sdk/releases/download/v0.1.0/modelith-plugin-sdk-0.1.0.tgz modelith-plugin validate kettle/.modelith/plugins/com.example.kettle-checks
+npx -p modelith-plugin-sdk modelith-plugin validate kettle/.modelith/plugins/com.example.kettle-checks
 ```
 
 ## 3. Modelith で結果を見る

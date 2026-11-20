@@ -1,5 +1,5 @@
 {
-  "name": "@modelith/plugin-sdk-harness-tests",
+  "name": "modelith-plugin-sdk-harness-tests",
   "private": true,
   "description": "Tests for the agent harness (scripts/, .claude/hooks/)",
   "license": "MIT",

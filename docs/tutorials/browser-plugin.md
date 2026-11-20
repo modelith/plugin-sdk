@@ -16,13 +16,12 @@ Modelith's screens are in Japanese, so this tutorial quotes their labels with a 
 
 ## 1. Set up the project
 
-Create the plugin folder and install the SDK from its GitHub Release
-(it is not on the npm registry, but it installs as `@modelith/plugin-sdk`):
+Create the plugin folder and install the SDK:
 
 ```sh
 mkdir port-check && cd port-check
 npm init -y
-npm install --save-dev esbuild typescript https://github.com/modelith/plugin-sdk/releases/download/v0.1.0/modelith-plugin-sdk-0.1.0.tgz
+npm install --save-dev esbuild typescript modelith-plugin-sdk
 ```
 
 You end up with this layout. `main.js` is the bundled plugin that Modelith runs.
@@ -83,7 +82,7 @@ port-check/
 `src/main.ts`:
 
 ```ts
-import { connectToHost, type Diagnostic, type ModelSnapshot } from "@modelith/plugin-sdk";
+import { connectToHost, type Diagnostic, type ModelSnapshot } from "modelith-plugin-sdk";
 
 const host = connectToHost(self);
 
