@@ -1,7 +1,7 @@
 name: Release
 
 # メンテナがリリースの下書き（release-draft.yml が作る）を公開すると、そのとき作られた main のタグ vMAJOR.MINOR.PATCH から、
-# crate を crates.io に公開し、TypeScript のパッケージ（npm pack の .tgz）をそのリリースに添付する（npm のレジストリには出さない）。
+# crate を crates.io に、TypeScript のパッケージを npm のレジストリに公開し（modelith の ADR-0028）、同じ .tgz をそのリリースに添付する。
 # 公開は release 環境で行う。環境の承認者が承認するまで公開しない（初期設定は CONTRIBUTING.md の「Releasing」）。
 # modelith の pages.yml と同じく、リリースの公開（release: published）で動く。
 on:
@@ -54,6 +54,7 @@ jobs:
     environment: release
     permissions:
       contents: write  # GitHub Release を作り、.tgz を添付する
+      id-token: write  # npm の Trusted Publishing（OIDC）と、公開元の証明（provenance）
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - name: Update rustup itself
@@ -69,7 +70,7 @@ jobs:
           check-latest: true
       - run: npm ci --prefix packages/typescript --ignore-scripts --no-audit --no-fund
       - run: npm run --prefix packages/typescript build
-      # やり直したときに落ちないよう、crate は版が無いときだけ公開し、リリースは有れば添付し直す
+      # やり直したときに落ちないよう、crate と npm のパッケージは版が無いときだけ公開し、リリースは有れば添付し直す
       - name: Publish the crate to crates.io
         env:
           CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
@@ -80,9 +81,33 @@ jobs:
           else
             cargo publish -p modelith-plugin-protocol --locked
           fi
+      - name: Pack the TypeScript package
+        id: pack
+        run: echo "tgz=packages/typescript/$(cd packages/typescript && npm pack --ignore-scripts --silent)" >>"$GITHUB_OUTPUT"
+      # release 環境に NPM_TOKEN があればそれで、無ければ Trusted Publishing（OIDC。npm 11.5.1 以上）で公開する。
+      # 最初の公開だけはトークンが要る（Trusted Publishing は、npm にあるパッケージの設定で有効にするため）。
+      - name: Publish the TypeScript package to npm
+        env:
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+          NPM_CONFIG_PROVENANCE: "true"
+          TGZ: ${{ steps.pack.outputs.tgz }}
+        run: |
+          version="${GITHUB_REF_NAME#v}"
+          # npm view は、版が無いと何も出さない（npm の版によっては、それでも 0 で終わる）ので、出力で確かめる
+          if [[ $(npm view "modelith-plugin-sdk@$version" version 2>/dev/null) == "$version" ]]; then
+            echo "modelith-plugin-sdk $version is already on npm"
+            exit 0
+          fi
+          if [[ -n $NPM_TOKEN ]]; then
+            npm config set //registry.npmjs.org/:_authToken "$NPM_TOKEN"
+          else
+            npm install --global npm@11 --no-audit --no-fund
+          fi
+          tag=latest
+          [[ $version == *-* ]] && tag=next
+          npm publish "$TGZ" --access public --tag "$tag"
       - name: Attach the TypeScript package to the release
         env:
           GH_TOKEN: ${{ github.token }}
-        run: |
-          tgz=$(cd packages/typescript && npm pack --ignore-scripts --silent)
-          gh release upload "$GITHUB_REF_NAME" "packages/typescript/$tgz" --clobber
+          TGZ: ${{ steps.pack.outputs.tgz }}
+        run: gh release upload "$GITHUB_REF_NAME" "$TGZ" --clobber

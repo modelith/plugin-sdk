@@ -1,7 +1,7 @@
 # Changelog
 
 All notable changes to the crate `modelith-plugin-protocol` and the TypeScript package `modelith-plugin-sdk` are recorded here.
-Both are released together with the same version: the crate on crates.io, the TypeScript package attached to the GitHub Release.
+Both are released together with the same version: the crate on crates.io, the TypeScript package on npm and attached to the GitHub Release.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and versions follow [Modelith's versioning rules](https://github.com/modelith/modelith/blob/dev/docs/reference/versioning.md).
 Before 1.0.0 (`apiVersion` `"0"`), any release may change the contract.
@@ -14,6 +14,8 @@ Before 1.0.0 (`apiVersion` `"0"`), any release may change the contract.
   because the npm scope `@modelith` is not available. Change imports from `@modelith/plugin-sdk` to `modelith-plugin-sdk`
   and from `@modelith/plugin-sdk/schema/*` to `modelith-plugin-sdk/schema/*`. The crate, the types, the schemas and
   `apiVersion` do not change.
+- The TypeScript package is published to the npm registry (`npm install modelith-plugin-sdk`), with provenance.
+  It is still attached to each GitHub Release.
 
 ### Added
 

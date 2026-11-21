@@ -86,9 +86,10 @@ a release draft is created automatically, and publishing the draft creates the t
   1. **verify**: the tag must be on `main` and match the version of both packages (`scripts/check-versions.sh <tag>`),
      and `scripts/check.sh` must pass.
   2. **publish**: runs in the `release` environment, so it waits until a maintainer approves it.
-     It publishes the crate to crates.io (skipped if that version is already there) and attaches the TypeScript package
-     (`npm pack`) to the release (replaced if already attached), so a failed run can simply be re-run.
-     The TypeScript package is not published to the npm registry.
+     It publishes the crate to crates.io and the TypeScript package to npm as `modelith-plugin-sdk` (each skipped if that
+     version is already there; a pre-release goes to the `next` dist-tag), and attaches the same `.tgz` to the release
+     (replaced if already attached), so a failed run can simply be re-run.
+     Nothing is published from a maintainer's machine (Modelith's ADR-0028).
 
 Steps:
 
@@ -114,7 +115,12 @@ A maintainer sets these up once, in the repository settings:
   - Deployment branches and tags: tags matching `v*` only.
   - Environment secret `CARGO_REGISTRY_TOKEN`: a crates.io API token with only the `publish-new` and `publish-update` scopes,
     limited to the crate `modelith-plugin-protocol`, with an expiry date. Replace it before it expires.
-  - No npm token is needed: the TypeScript package goes to GitHub Releases with the workflow's own token.
+  - Environment secret `NPM_TOKEN`, for the first npm release only: a granular access token that can publish
+    `modelith-plugin-sdk`, with an expiry date. Trusted publishing can only be set up for a package that is already on npm.
+- **After the first npm release**: on npmjs.com, open the package's Settings → Trusted publishing and add GitHub Actions
+  (organization `modelith`, repository `plugin-sdk`, workflow `release.yml`, environment `release`). The next release must
+  follow within 2 days, or the configuration expires. Then delete the `NPM_TOKEN` secret and choose
+  "Require two-factor authentication and disallow tokens". Without the secret, the workflow publishes with trusted publishing.
 
 ## Adding or updating dependencies
 
