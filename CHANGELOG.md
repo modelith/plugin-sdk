@@ -14,7 +14,7 @@ Before 1.0.0 (`apiVersion` `"0"`), any release may change the contract.
   because the npm scope `@modelith` is not available. Change imports from `@modelith/plugin-sdk` to `modelith-plugin-sdk`
   and from `@modelith/plugin-sdk/schema/*` to `modelith-plugin-sdk/schema/*`. The crate, the types, the schemas and
   `apiVersion` do not change.
-- The TypeScript package is published to the npm registry (`npm install modelith-plugin-sdk`), with provenance.
+- The TypeScript package is published to the npm registry (`npm install modelith-plugin-sdk`).
   It is still attached to each GitHub Release.
 
 ### Added

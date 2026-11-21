@@ -86,10 +86,14 @@ a release draft is created automatically, and publishing the draft creates the t
   1. **verify**: the tag must be on `main` and match the version of both packages (`scripts/check-versions.sh <tag>`),
      and `scripts/check.sh` must pass.
   2. **publish**: runs in the `release` environment, so it waits until a maintainer approves it.
-     It publishes the crate to crates.io and the TypeScript package to npm as `modelith-plugin-sdk` (each skipped if that
-     version is already there; a pre-release goes to the `next` dist-tag), and attaches the same `.tgz` to the release
-     (replaced if already attached), so a failed run can simply be re-run.
-     Nothing is published from a maintainer's machine (Modelith's ADR-0028).
+     It publishes the crate to crates.io (skipped if that version is already there) and attaches the TypeScript package
+     (`npm pack`) to the release (replaced if already attached), so a failed run can simply be re-run.
+  3. **npm**: stages the same `.tgz` on npm as `modelith-plugin-sdk` (`scripts/release-npm.sh`, `npm stage publish`;
+     Modelith's ADR-0028). Staging does not publish: a maintainer reviews the staged version on
+     <https://www.npmjs.com/package/modelith-plugin-sdk> and approves it with two-factor authentication
+     (or `npm stage list modelith-plugin-sdk`, then `npm stage approve <ID>` / `npm stage reject <ID>`).
+     A pre-release gets the dist-tag `next`, a release `latest`. The workflow holds no npm token.
+     A version can be staged only once: reject a staged version before re-running the job.
 
 Steps:
 
@@ -102,6 +106,7 @@ Steps:
    Merging creates the release draft.
 3. A maintainer checks the draft and presses **Publish release**. This creates the tag `v<version>` on `main`.
 4. Approve the `publish` job when it asks, and check the new version on crates.io and the GitHub Release.
+   Then approve the staged version on npm, and check `npm view modelith-plugin-sdk version`.
 5. Merge `main` back into `dev` with a merge commit.
 
 A pre-release version (`0.2.0-rc.1`) gets a GitHub Release marked as a pre-release.
@@ -115,12 +120,26 @@ A maintainer sets these up once, in the repository settings:
   - Deployment branches and tags: tags matching `v*` only.
   - Environment secret `CARGO_REGISTRY_TOKEN`: a crates.io API token with only the `publish-new` and `publish-update` scopes,
     limited to the crate `modelith-plugin-protocol`, with an expiry date. Replace it before it expires.
-  - Environment secret `NPM_TOKEN`, for the first npm release only: a granular access token that can publish
-    `modelith-plugin-sdk`, with an expiry date. Trusted publishing can only be set up for a package that is already on npm.
-- **After the first npm release**: on npmjs.com, open the package's Settings → Trusted publishing and add GitHub Actions
-  (organization `modelith`, repository `plugin-sdk`, workflow `release.yml`, environment `release`). The next release must
-  follow within 2 days, or the configuration expires. Then delete the `NPM_TOKEN` secret and choose
-  "Require two-factor authentication and disallow tokens". Without the secret, the workflow publishes with trusted publishing.
+  - No npm token is stored: the workflow reaches npm through trusted publishing.
+- **npm, once** (npm 11.15.0 or later; never put a token or a one-time password in the repository, an issue or a chat):
+  1. Publish the first version by hand. Trusted publishing can only be set up for a package that is already on npm.
+     Publish the `.tgz` the workflow built and attached to the release, not a local build:
+
+     ```sh
+     npm login
+     curl -LO https://github.com/modelith/plugin-sdk/releases/download/v<version>/modelith-plugin-sdk-<version>.tgz
+     npm publish ./modelith-plugin-sdk-<version>.tgz --tag latest   # --tag next for a pre-release
+     ```
+
+  2. Register the trusted publisher, allowing staging only (do not add `--allow-publish`):
+
+     ```sh
+     npm trust github modelith-plugin-sdk --repo modelith/plugin-sdk --file release.yml --allow-stage-publish
+     ```
+
+  3. In the package's settings on npmjs.com, choose "Require two-factor authentication and disallow tokens".
+  4. In the repository's Settings → Secrets and variables → Actions → Variables, add `NPM_STAGE_PUBLISH` = `true`.
+     Until then the workflow skips the npm job.
 
 ## Adding or updating dependencies
 

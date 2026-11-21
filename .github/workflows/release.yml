@@ -1,7 +1,9 @@
 name: Release
 
 # メンテナがリリースの下書き（release-draft.yml が作る）を公開すると、そのとき作られた main のタグ vMAJOR.MINOR.PATCH から、
-# crate を crates.io に、TypeScript のパッケージを npm のレジストリに公開し（modelith の ADR-0028）、同じ .tgz をそのリリースに添付する。
+# crate を crates.io に公開し、TypeScript のパッケージ（npm pack の .tgz）をそのリリースに添付する。
+# 続けて、添付したのと同じ .tgz を npm のレジストリに「置く」（npm stage publish。modelith の ADR-0028 の 3）。
+# 置いただけでは公開されず、メンテナが npm で 2 段階認証をして承認すると公開される。
 # 公開は release 環境で行う。環境の承認者が承認するまで公開しない（初期設定は CONTRIBUTING.md の「Releasing」）。
 # modelith の pages.yml と同じく、リリースの公開（release: published）で動く。
 on:
@@ -54,7 +56,6 @@ jobs:
     environment: release
     permissions:
       contents: write  # GitHub Release を作り、.tgz を添付する
-      id-token: write  # npm の Trusted Publishing（OIDC）と、公開元の証明（provenance）
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - name: Update rustup itself
@@ -70,7 +71,7 @@ jobs:
           check-latest: true
       - run: npm ci --prefix packages/typescript --ignore-scripts --no-audit --no-fund
       - run: npm run --prefix packages/typescript build
-      # やり直したときに落ちないよう、crate と npm のパッケージは版が無いときだけ公開し、リリースは有れば添付し直す
+      # やり直したときに落ちないよう、crate は版が無いときだけ公開し、リリースは有れば添付し直す
       - name: Publish the crate to crates.io
         env:
           CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
@@ -81,33 +82,34 @@ jobs:
           else
             cargo publish -p modelith-plugin-protocol --locked
           fi
-      - name: Pack the TypeScript package
-        id: pack
-        run: echo "tgz=packages/typescript/$(cd packages/typescript && npm pack --ignore-scripts --silent)" >>"$GITHUB_OUTPUT"
-      # release 環境に NPM_TOKEN があればそれで、無ければ Trusted Publishing（OIDC。npm 11.5.1 以上）で公開する。
-      # 最初の公開だけはトークンが要る（Trusted Publishing は、npm にあるパッケージの設定で有効にするため）。
-      - name: Publish the TypeScript package to npm
-        env:
-          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
-          NPM_CONFIG_PROVENANCE: "true"
-          TGZ: ${{ steps.pack.outputs.tgz }}
-        run: |
-          version="${GITHUB_REF_NAME#v}"
-          # npm view は、版が無いと何も出さない（npm の版によっては、それでも 0 で終わる）ので、出力で確かめる
-          if [[ $(npm view "modelith-plugin-sdk@$version" version 2>/dev/null) == "$version" ]]; then
-            echo "modelith-plugin-sdk $version is already on npm"
-            exit 0
-          fi
-          if [[ -n $NPM_TOKEN ]]; then
-            npm config set //registry.npmjs.org/:_authToken "$NPM_TOKEN"
-          else
-            npm install --global npm@11 --no-audit --no-fund
-          fi
-          tag=latest
-          [[ $version == *-* ]] && tag=next
-          npm publish "$TGZ" --access public --tag "$tag"
       - name: Attach the TypeScript package to the release
         env:
           GH_TOKEN: ${{ github.token }}
-          TGZ: ${{ steps.pack.outputs.tgz }}
-        run: gh release upload "$GITHUB_REF_NAME" "$TGZ" --clobber
+        run: |
+          tgz=$(cd packages/typescript && npm pack --ignore-scripts --silent)
+          gh release upload "$GITHUB_REF_NAME" "packages/typescript/$tgz" --clobber
+
+  npm:
+    needs: publish
+    # npm に結び付け（Trusted Publishing）を登録したあとで、リポジトリの変数を true にする。それまでは何もしない
+    if: vars.NPM_STAGE_PUBLISH == 'true'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read   # リリースに添付した .tgz を取る
+      id-token: write  # npm に、このワークフローであることを示す（Trusted Publishing）
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      # registry-url は渡さない（渡すと、鍵を使う設定が書かれ、結び付けでの認証を妨げる）
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version-file: .nvmrc
+          check-latest: true
+      - name: Use an npm that can stage a package
+        # npm stage publish は npm 11.15.0 から。Node に付いてくる版に頼らず、決めた版を使う（modelith と同じ版）
+        run: npm install --global --ignore-scripts npm@12.2.3
+      - name: Stage the package on npm
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: scripts/release-npm.sh "$GITHUB_REF_NAME"
