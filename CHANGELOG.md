@@ -8,6 +8,8 @@ Before 1.0.0 (`apiVersion` `"0"`), any release may change the contract.
 
 ## [Unreleased]
 
+## [0.2.0] - 2026-11-24
+
 ### Changed
 
 - **Breaking:** the TypeScript package is renamed from `@modelith/plugin-sdk` to `modelith-plugin-sdk` (Modelith's ADR-0028),
@@ -57,5 +59,6 @@ The first release.
   for generating the schemas and TypeScript types.
 - Tutorials for a first rules plugin and a first browser plugin, in English and Japanese.
 
-[Unreleased]: https://github.com/modelith/plugin-sdk/compare/v0.1.0...HEAD
+[Unreleased]: https://github.com/modelith/plugin-sdk/compare/v0.2.0...HEAD
+[0.2.0]: https://github.com/modelith/plugin-sdk/compare/v0.1.0...v0.2.0
 [0.1.0]: https://github.com/modelith/plugin-sdk/releases/tag/v0.1.0
