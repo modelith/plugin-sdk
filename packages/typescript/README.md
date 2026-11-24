@@ -1,4 +1,4 @@
-# @modelith/plugin-sdk
+# modelith-plugin-sdk
 
 TypeScript types, JSON Schemas and helpers for building [Modelith](https://github.com/modelith/modelith) plugins.
 
@@ -11,19 +11,19 @@ See the [repository README](../../README.md) for an overview of plugin types.
 
 ## Install
 
-The package is attached to each [GitHub Release](https://github.com/modelith/plugin-sdk/releases), not published to the npm registry.
-Install it from the release's `.tgz`. It installs as `@modelith/plugin-sdk`, so imports stay the same:
-
 ```sh
-npm install --save-dev https://github.com/modelith/plugin-sdk/releases/download/v0.1.0/modelith-plugin-sdk-0.1.0.tgz
+npm install --save-dev modelith-plugin-sdk
 ```
+
+Each [GitHub Release](https://github.com/modelith/plugin-sdk/releases) also has the package attached as a `.tgz`.
+Up to 0.1.0 the package was named `@modelith/plugin-sdk`; change the imports to `modelith-plugin-sdk`.
 
 ## Talk to Modelith from a `browser` plugin
 
 A `browser` plugin runs in a Web Worker. `connectToHost` gives it typed messages in both directions:
 
 ```ts
-import { connectToHost } from "@modelith/plugin-sdk";
+import { connectToHost } from "modelith-plugin-sdk";
 
 const host = connectToHost(self);
 
@@ -78,7 +78,7 @@ Constants and helpers:
 The package ships the JSON Schemas too, for editors and CI:
 
 ```ts
-import manifestSchema from "@modelith/plugin-sdk/schema/plugin-manifest.schema.json" with { type: "json" };
+import manifestSchema from "modelith-plugin-sdk/schema/plugin-manifest.schema.json" with { type: "json" };
 ```
 
 Available: `plugin-manifest`, `rule-set`, `host-message`, `plugin-message`, `registry-entry`.

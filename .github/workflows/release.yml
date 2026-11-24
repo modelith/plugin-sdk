@@ -1,7 +1,9 @@
 name: Release
 
 # メンテナがリリースの下書き（release-draft.yml が作る）を公開すると、そのとき作られた main のタグ vMAJOR.MINOR.PATCH から、
-# crate を crates.io に公開し、TypeScript のパッケージ（npm pack の .tgz）をそのリリースに添付する（npm のレジストリには出さない）。
+# crate を crates.io に公開し、TypeScript のパッケージ（npm pack の .tgz）をそのリリースに添付する。
+# 続けて、添付したのと同じ .tgz を npm のレジストリに「置く」（npm stage publish。modelith の ADR-0028 の 3）。
+# 置いただけでは公開されず、メンテナが npm で 2 段階認証をして承認すると公開される。
 # 公開は release 環境で行う。環境の承認者が承認するまで公開しない（初期設定は CONTRIBUTING.md の「Releasing」）。
 # modelith の pages.yml と同じく、リリースの公開（release: published）で動く。
 on:
@@ -86,3 +88,28 @@ jobs:
         run: |
           tgz=$(cd packages/typescript && npm pack --ignore-scripts --silent)
           gh release upload "$GITHUB_REF_NAME" "packages/typescript/$tgz" --clobber
+
+  npm:
+    needs: publish
+    # npm に結び付け（Trusted Publishing）を登録したあとで、リポジトリの変数を true にする。それまでは何もしない
+    if: vars.NPM_STAGE_PUBLISH == 'true'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read   # リリースに添付した .tgz を取る
+      id-token: write  # npm に、このワークフローであることを示す（Trusted Publishing）
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      # registry-url は渡さない（渡すと、鍵を使う設定が書かれ、結び付けでの認証を妨げる）
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version-file: .nvmrc
+          check-latest: true
+      - name: Use an npm that can stage a package
+        # npm stage publish は npm 11.15.0 から。Node に付いてくる版に頼らず、決めた版を使う（modelith と同じ版）
+        run: npm install --global --ignore-scripts npm@12.2.3
+      - name: Stage the package on npm
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: scripts/release-npm.sh "$GITHUB_REF_NAME"

@@ -241,3 +241,83 @@ describe("usage report schema", () => {
     expect(dimensions.sort()).toEqual(["appVersion", "channel", "client"]);
   });
 });
+
+describe("read output schemas", () => {
+  const ajv = new Ajv2020.default({ strict: false });
+  const outline = ajv.compile(readJson("schema/project-outline.schema.json"));
+  const detail = ajv.compile(readJson("schema/element-detail.schema.json"));
+  const problem = ajv.compile(readJson("schema/problem-report.schema.json"));
+  const element = readJson("examples", "read.element-detail.json") as Record<string, unknown>;
+
+  it.each([
+    ["read.project-outline.json", outline, readJson("examples", "read.project-outline.json")],
+    ["read.element-detail.json", detail, element],
+    ...(readJson("examples", "read.problems.json") as unknown[]).map((p, i) => [`read.problems.json[${i}]`, problem, p] as const),
+  ] as const)("accepts %s", (_: string, validate, json: unknown) => {
+    // Arrange
+    const body = json;
+    // Act
+    const valid = validate(body);
+    // Assert
+    expect(valid, JSON.stringify(validate.errors)).toBe(true);
+  });
+
+  it.each([
+    ["an unknown relation direction", { relations: [{ kind: "satisfy", direction: "both", other: "A" }] }],
+    ["a missing qualified name", { qualifiedName: undefined }],
+    ["a range without an end", { range: { start: { line: 0, character: 0 } } }],
+  ])("element detail rejects %s", (_: string, change: object) => {
+    // Arrange（異常系: Rust 側の read.rs のテストと同じ同値クラス）
+    const body = JSON.parse(JSON.stringify({ ...element, ...change }));
+    // Act
+    const valid = detail(body);
+    // Assert
+    expect(valid).toBe(false);
+  });
+});
+
+describe("write schemas", () => {
+  const ajv = new Ajv2020.default({ strict: false });
+  const request = ajv.compile(readJson("schema/edit-request.schema.json"));
+  const proposal = ajv.compile(readJson("schema/edit-proposal.schema.json"));
+  const requests = readJson("examples", "write.requests.json") as { type: string }[];
+
+  it.each(requests.map((r, i) => [`write.requests.json[${i}] ${r.type}`, r] as const))("accepts %s", (_: string, json: unknown) => {
+    // Arrange
+    const body = json;
+    // Act
+    const valid = request(body);
+    // Assert
+    expect(valid, JSON.stringify(request.errors)).toBe(true);
+  });
+
+  it("accepts write.proposal.json", () => {
+    // Arrange
+    const body: unknown = readJson("examples", "write.proposal.json");
+    // Act
+    const valid = proposal(body);
+    // Assert
+    expect(valid, JSON.stringify(proposal.errors)).toBe(true);
+  });
+
+  it.each([
+    ["an unknown type", { type: "move", element: "A" }],
+    ["a rename without the new name", { type: "rename", element: "A" }],
+  ])("edit request rejects %s", (_: string, json: unknown) => {
+    // Arrange（異常系: Rust 側の write.rs のテストと同じ同値クラス）
+    const body = json;
+    // Act
+    const valid = request(body);
+    // Assert
+    expect(valid).toBe(false);
+  });
+
+  it("edit proposal rejects a change without baseVersion", () => {
+    // Arrange
+    const body = { changes: [{ file: "a.sysml", edits: [] }] };
+    // Act
+    const valid = proposal(body);
+    // Assert
+    expect(valid).toBe(false);
+  });
+});

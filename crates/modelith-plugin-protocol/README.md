@@ -5,7 +5,7 @@ the plugin manifest, rule files, the messages a `browser` plugin exchanges with 
 text edits and diagnostics, and plugin registry entries.
 
 These types are the single source of truth. The JSON Schemas and the TypeScript types in
-[`@modelith/plugin-sdk`](https://github.com/modelith/plugin-sdk/tree/dev/packages/typescript) are generated from them.
+[`modelith-plugin-sdk`](https://github.com/modelith/plugin-sdk/tree/dev/packages/typescript) are generated from them.
 Modelith (the host) and the plugin registry's CI depend on this crate.
 
 Pre-1.0 (`apiVersion` `"0"`): the contract may still change between minor releases.

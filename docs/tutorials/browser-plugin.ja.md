@@ -15,13 +15,12 @@
 
 ## 1. プロジェクトを用意する
 
-プラグインのフォルダを作り、GitHub Release から SDK を入れます
-（npm のレジストリには出していませんが、`@modelith/plugin-sdk` という名前で入ります）。
+プラグインのフォルダを作り、SDK を入れます。
 
 ```sh
 mkdir port-check && cd port-check
 npm init -y
-npm install --save-dev esbuild typescript https://github.com/modelith/plugin-sdk/releases/download/v0.1.0/modelith-plugin-sdk-0.1.0.tgz
+npm install --save-dev esbuild typescript modelith-plugin-sdk
 ```
 
 次の構成になります。`main.js` は、Modelith が動かす、1 つにまとめたプラグインです。
@@ -82,7 +81,7 @@ port-check/
 `src/main.ts`：
 
 ```ts
-import { connectToHost, type Diagnostic, type ModelSnapshot } from "@modelith/plugin-sdk";
+import { connectToHost, type Diagnostic, type ModelSnapshot } from "modelith-plugin-sdk";
 
 const host = connectToHost(self);
 

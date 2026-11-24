@@ -1,0 +1,12 @@
+[
+  {
+    "file": "shop.sysml",
+    "diagnostic": {
+      "range": { "start": { "line": 2, "character": 4 }, "end": { "line": 2, "character": 17 } },
+      "severity": "warning",
+      "message": "Nothing satisfies requirement HoldItems",
+      "code": "req-has-satisfier",
+      "source": "com.example.kettle-checks"
+    }
+  }
+]

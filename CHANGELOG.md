@@ -1,12 +1,34 @@
 # Changelog
 
-All notable changes to the crate `modelith-plugin-protocol` and the TypeScript package `@modelith/plugin-sdk` are recorded here.
-Both are released together with the same version: the crate on crates.io, the TypeScript package attached to the GitHub Release.
+All notable changes to the crate `modelith-plugin-protocol` and the TypeScript package `modelith-plugin-sdk` are recorded here.
+Both are released together with the same version: the crate on crates.io, the TypeScript package on npm and attached to the GitHub Release.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and versions follow [Modelith's versioning rules](https://github.com/modelith/modelith/blob/dev/docs/reference/versioning.md).
 Before 1.0.0 (`apiVersion` `"0"`), any release may change the contract.
 
 ## [Unreleased]
+
+## [0.2.0] - 2026-11-24
+
+### Changed
+
+- **Breaking:** the TypeScript package is renamed from `@modelith/plugin-sdk` to `modelith-plugin-sdk` (Modelith's ADR-0028),
+  because the npm scope `@modelith` is not available. Change imports from `@modelith/plugin-sdk` to `modelith-plugin-sdk`
+  and from `@modelith/plugin-sdk/schema/*` to `modelith-plugin-sdk/schema/*`. The crate, the types, the schemas and
+  `apiVersion` do not change.
+- The TypeScript package is published to the npm registry (`npm install modelith-plugin-sdk`).
+  It is still attached to each GitHub Release.
+
+### Added
+
+- Outputs of reading and checking a model, shared by AI clients (MCP), the app and the server (Modelith's ADR-0024):
+  `ProjectOutline` (files, elements, diagrams), `ElementSummary`, `ElementDetail` (doc, type, phase, members, ports,
+  relations), `ElementRelation`, `DiagramSummary` and `ProblemReport`, with the JSON Schemas `project-outline`,
+  `element-detail` and `problem-report`. Unknown fields are ignored.
+- Inputs and outputs of writing a model, in two steps (propose, then write; Modelith's ADR-0024): `EditRequest`
+  (`addElement`, `addRelation`, `rename`, `delete`, `setDoc`, `replaceText`, pointing at elements by qualified name),
+  `EditProposal` (file changes and the problems after applying them) and `FileChange` (`TextEdit`s on a `baseVersion`),
+  with the JSON Schemas `edit-request` and `edit-proposal`. Unknown fields are ignored.
 
 ## [0.1.0] - 2026-11-19
 
@@ -37,5 +59,6 @@ The first release.
   for generating the schemas and TypeScript types.
 - Tutorials for a first rules plugin and a first browser plugin, in English and Japanese.
 
-[Unreleased]: https://github.com/modelith/plugin-sdk/compare/v0.1.0...HEAD
+[Unreleased]: https://github.com/modelith/plugin-sdk/compare/v0.2.0...HEAD
+[0.2.0]: https://github.com/modelith/plugin-sdk/compare/v0.1.0...v0.2.0
 [0.1.0]: https://github.com/modelith/plugin-sdk/releases/tag/v0.1.0

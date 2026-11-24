@@ -6,7 +6,8 @@
 use std::path::Path;
 
 use modelith_plugin_protocol::{
-    HostMessage, PluginManifest, PluginMessage, RegistryEntry, RuleSet, UsageReport,
+    EditProposal, EditRequest, ElementDetail, HostMessage, PluginManifest, PluginMessage,
+    ProblemReport, ProjectOutline, RegistryEntry, RuleSet, UsageReport,
 };
 use serde::{Serialize, de::DeserializeOwned};
 use serde_json::Value;
@@ -99,6 +100,54 @@ fn usage_reports_round_trip() {
     let name = "usage-reports.json";
     // Act
     let errors = round_trip_errors::<UsageReport>(name);
+    // Assert
+    assert!(errors.is_empty(), "{errors:?}");
+}
+
+/// 1 つの JSON を型で読み、書き戻すと元と同じになるか（JSON で往復できる）。
+fn round_trip_one<T: DeserializeOwned + Serialize>(name: &str) -> Result<(), String> {
+    let original: Value = serde_json::from_str(&read(name)).unwrap();
+    let back = serde_json::from_value::<T>(original.clone())
+        .and_then(|m| serde_json::to_value(&m))
+        .map_err(|e| format!("{name}: {e}"))?;
+    if back == original {
+        Ok(())
+    } else {
+        Err(format!("{name}: round trip changed it to {back}"))
+    }
+}
+
+#[test]
+fn read_outputs_round_trip() {
+    // Arrange
+    let names = ["read.project-outline.json", "read.element-detail.json"];
+    // Act
+    let results = [
+        round_trip_one::<ProjectOutline>(names[0]),
+        round_trip_one::<ElementDetail>(names[1]),
+    ];
+    // Assert
+    let errors: Vec<_> = results.into_iter().filter_map(Result::err).collect();
+    assert!(errors.is_empty(), "{errors:?}");
+}
+
+#[test]
+fn problem_reports_round_trip() {
+    // Arrange
+    let name = "read.problems.json";
+    // Act
+    let errors = round_trip_errors::<ProblemReport>(name);
+    // Assert
+    assert!(errors.is_empty(), "{errors:?}");
+}
+
+#[test]
+fn write_requests_and_proposal_round_trip() {
+    // Arrange
+    let names = ["write.requests.json", "write.proposal.json"];
+    // Act
+    let mut errors = round_trip_errors::<EditRequest>(names[0]);
+    errors.extend(round_trip_one::<EditProposal>(names[1]).err());
     // Assert
     assert!(errors.is_empty(), "{errors:?}");
 }

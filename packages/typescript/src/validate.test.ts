@@ -182,7 +182,7 @@ describe("validatePlugin", () => {
 
   it("reports a browser main that is still an ES module", () => {
     // Arrange（まとめずに tsc の出力をそのまま指した）
-    const plugin = folder({ "modelith-plugin.json": browserManifest, "main.js": 'import { connectToHost } from "@modelith/plugin-sdk";\n' });
+    const plugin = folder({ "modelith-plugin.json": browserManifest, "main.js": 'import { connectToHost } from "modelith-plugin-sdk";\n' });
     // Act
     const problems = validatePlugin(plugin, schemas);
     // Assert

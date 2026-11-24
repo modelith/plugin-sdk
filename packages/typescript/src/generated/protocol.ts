@@ -284,6 +284,166 @@ label?: string, } | { "type": "commandDone", requestId: number, } | { "type": "i
  */
 base64: string, } | { "type": "failed", requestId: number, message: string, } | { "type": "storageGet", requestId: number, key: string, } | { "type": "storageSet", requestId: number, key: string, value: unknown, } | { "type": "notify", level: NotifyLevel, message: string, };
 
+export type ProjectFile = { 
+/**
+ * プロジェクトのフォルダからのパス（`/` 区切り）。
+ */
+path: string, };
+
+export type ElementSummary = { 
+/**
+ * 修飾名（例: `Shop::Cart`）。
+ */
+qualifiedName: string, name: string, 
+/**
+ * 短い名前（`<C1>`）。書いていなければ省く。
+ */
+shortName?: string, 
+/**
+ * 要素の種類（例: `part def`）。[`crate::ModelElement`] の `kind` と同じ言葉。
+ */
+kind: string, 
+/**
+ * 要素を書いたファイル（[`ProjectFile`] の `path`）。
+ */
+file: string, 
+/**
+ * テキスト上の位置。
+ */
+range: Range, };
+
+export type RelationDirection = "outgoing" | "incoming";
+
+export type ElementRelation = { 
+/**
+ * 関係の種類。今の言葉は次の 13 個（一般の図に出る関係）。
+ * - [`crate::RelationKind`] と同じもの: `satisfy`・`verify`・`frame`・`derivation`・`flow`
+ * - それ以外: `composition`（部品として持つ）・`definedBy`（用法 → その型の定義）・`allocate`・
+ *   `dependency`・`specialize`・`subset`・`redefine`・`reference`
+ *
+ * 送り手が種類を足しても古い受け手が拒まないよう、列挙にせず文字列のままにする。
+ * 受け手は、知らない言葉の関係を「そのほかの関係」として扱う。
+ */
+kind: string, direction: RelationDirection, 
+/**
+ * 相手の要素の修飾名。
+ */
+other: string, };
+
+export type ElementDetail = { 
+/**
+ * 説明（`doc`）。書いていなければ省く。
+ */
+doc?: string, 
+/**
+ * 型の名前（書かれたまま）。書いていなければ省く。
+ */
+type?: string, 
+/**
+ * 工程（`@Phase`）の名前。
+ */
+phase?: string, 
+/**
+ * 直下の要素（属性・部品・ポートなど）。
+ */
+members: Array<ElementSummary>, ports: Array<ModelPort>, 
+/**
+ * この要素から出る関係と、この要素に入る関係。
+ */
+relations: Array<ElementRelation>, 
+/**
+ * 修飾名（例: `Shop::Cart`）。
+ */
+qualifiedName: string, name: string, 
+/**
+ * 短い名前（`<C1>`）。書いていなければ省く。
+ */
+shortName?: string, 
+/**
+ * 要素の種類（例: `part def`）。[`crate::ModelElement`] の `kind` と同じ言葉。
+ */
+kind: string, 
+/**
+ * 要素を書いたファイル（[`ProjectFile`] の `path`）。
+ */
+file: string, 
+/**
+ * テキスト上の位置。
+ */
+range: Range, };
+
+export type DiagramSummary = { name: string, qualifiedName: string, 
+/**
+ * 図の種類。view の型の名前（例: `GeneralView`・`InterconnectionView`）。
+ */
+kind: string, file: string, range: Range, };
+
+export type ProjectOutline = { files: Array<ProjectFile>, 
+/**
+ * 定義と用法（入れ子の要素も含む）。
+ */
+elements: Array<ElementSummary>, 
+/**
+ * テキストに書いた図（view）。
+ */
+diagrams: Array<DiagramSummary>, };
+
+export type ProblemReport = { 
+/**
+ * 問題のあるファイル。
+ */
+file: string, diagnostic: Diagnostic, };
+
+export type EditRequest = { "type": "addElement", 
+/**
+ * 要素の種類（例: `part def`）。[`crate::ElementSummary`] の `kind` と同じ言葉。
+ */
+kind: string, name: string, 
+/**
+ * 入れる先の要素の修飾名（package に限らない。受けない先は、書く側が断る）。
+ */
+parent: string, } | { "type": "addRelation", 
+/**
+ * 関係の種類。[`crate::ElementRelation`] の `kind` と同じ言葉。
+ */
+kind: string, 
+/**
+ * 関係が出る側の要素の修飾名（[`crate::RelationDirection::Outgoing`] の側）。
+ */
+from: string, 
+/**
+ * 関係が入る側の要素の修飾名。
+ */
+to: string, } | { "type": "rename", element: string, name: string, } | { "type": "delete", element: string, } | { "type": "setDoc", element: string, doc: string, } | { "type": "replaceText", 
+/**
+ * プロジェクトのフォルダからのパス（`/` 区切り）。
+ */
+file: string, text: string, };
+
+export type FileChange = { 
+/**
+ * プロジェクトのフォルダからのパス（`/` 区切り）。
+ */
+file: string, 
+/**
+ * `edits` が前提にするテキストの版。中身は決めない文字列で、作った側が書き込むときに今の版と比べる。
+ */
+baseVersion: string, 
+/**
+ * 当てる編集（位置は `baseVersion` のテキストのもの）。
+ */
+edits: Array<TextEdit>, };
+
+export type EditProposal = { 
+/**
+ * ファイルごとの差分。
+ */
+changes: Array<FileChange>, 
+/**
+ * 提案を当てたあとの、プロジェクトの問題の一覧。
+ */
+problems: Array<ProblemReport>, };
+
 export type Count = number;
 
 export type Channel = "stable" | "rc" | "preview";

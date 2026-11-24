@@ -1,0 +1,143 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "EditRequest",
+  "description": "編集の意図。",
+  "oneOf": [
+    {
+      "description": "要素を足す。",
+      "type": "object",
+      "properties": {
+        "kind": {
+          "description": "要素の種類（例: `part def`）。[`crate::ElementSummary`] の `kind` と同じ言葉。",
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "parent": {
+          "description": "入れる先の要素の修飾名（package に限らない。受けない先は、書く側が断る）。",
+          "type": "string"
+        },
+        "type": {
+          "type": "string",
+          "const": "addElement"
+        }
+      },
+      "required": [
+        "type",
+        "kind",
+        "name",
+        "parent"
+      ]
+    },
+    {
+      "description": "関係を足す。",
+      "type": "object",
+      "properties": {
+        "from": {
+          "description": "関係が出る側の要素の修飾名（[`crate::RelationDirection::Outgoing`] の側）。",
+          "type": "string"
+        },
+        "kind": {
+          "description": "関係の種類。[`crate::ElementRelation`] の `kind` と同じ言葉。",
+          "type": "string"
+        },
+        "to": {
+          "description": "関係が入る側の要素の修飾名。",
+          "type": "string"
+        },
+        "type": {
+          "type": "string",
+          "const": "addRelation"
+        }
+      },
+      "required": [
+        "type",
+        "kind",
+        "from",
+        "to"
+      ]
+    },
+    {
+      "description": "要素の名前を変える。",
+      "type": "object",
+      "properties": {
+        "element": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "type": {
+          "type": "string",
+          "const": "rename"
+        }
+      },
+      "required": [
+        "type",
+        "element",
+        "name"
+      ]
+    },
+    {
+      "description": "要素を消す（1 要素ずつ）。",
+      "type": "object",
+      "properties": {
+        "element": {
+          "type": "string"
+        },
+        "type": {
+          "type": "string",
+          "const": "delete"
+        }
+      },
+      "required": [
+        "type",
+        "element"
+      ]
+    },
+    {
+      "description": "要素の説明（`doc`）を書き換える。空の文字列なら説明を消す。",
+      "type": "object",
+      "properties": {
+        "doc": {
+          "type": "string"
+        },
+        "element": {
+          "type": "string"
+        },
+        "type": {
+          "type": "string",
+          "const": "setDoc"
+        }
+      },
+      "required": [
+        "type",
+        "element",
+        "doc"
+      ]
+    },
+    {
+      "description": "ファイルを丸ごと書き換える（テキストで書くほうが向く場面のため）。",
+      "type": "object",
+      "properties": {
+        "file": {
+          "description": "プロジェクトのフォルダからのパス（`/` 区切り）。",
+          "type": "string"
+        },
+        "text": {
+          "type": "string"
+        },
+        "type": {
+          "type": "string",
+          "const": "replaceText"
+        }
+      },
+      "required": [
+        "type",
+        "file",
+        "text"
+      ]
+    }
+  ]
+}

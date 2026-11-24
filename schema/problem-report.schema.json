@@ -1,0 +1,98 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "ProblemReport",
+  "description": "確かめた結果の問題 1 件。問題の種類のコードは [`Diagnostic`] の `code` に入る。",
+  "type": "object",
+  "properties": {
+    "diagnostic": {
+      "$ref": "#/$defs/Diagnostic"
+    },
+    "file": {
+      "description": "問題のあるファイル。",
+      "type": "string"
+    }
+  },
+  "required": [
+    "file",
+    "diagnostic"
+  ],
+  "$defs": {
+    "Diagnostic": {
+      "description": "検査ルールなどが報告する診断。",
+      "type": "object",
+      "properties": {
+        "code": {
+          "description": "ルール ID など。",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "message": {
+          "type": "string"
+        },
+        "range": {
+          "$ref": "#/$defs/Range"
+        },
+        "severity": {
+          "$ref": "#/$defs/DiagnosticSeverity"
+        },
+        "source": {
+          "description": "報告元のプラグイン ID など。",
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      },
+      "required": [
+        "range",
+        "severity",
+        "message"
+      ]
+    },
+    "DiagnosticSeverity": {
+      "type": "string",
+      "enum": [
+        "error",
+        "warning",
+        "information",
+        "hint"
+      ]
+    },
+    "Position": {
+      "type": "object",
+      "properties": {
+        "character": {
+          "type": "integer",
+          "format": "uint32",
+          "minimum": 0
+        },
+        "line": {
+          "type": "integer",
+          "format": "uint32",
+          "minimum": 0
+        }
+      },
+      "required": [
+        "line",
+        "character"
+      ]
+    },
+    "Range": {
+      "type": "object",
+      "properties": {
+        "end": {
+          "$ref": "#/$defs/Position"
+        },
+        "start": {
+          "$ref": "#/$defs/Position"
+        }
+      },
+      "required": [
+        "start",
+        "end"
+      ]
+    }
+  }
+}

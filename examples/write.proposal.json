@@ -1,0 +1,43 @@
+{
+  "changes": [
+    {
+      "file": "shop.sysml",
+      "baseVersion": "sha256:9f2c41",
+      "edits": [
+        {
+          "range": {
+            "start": {
+              "line": 2,
+              "character": 13
+            },
+            "end": {
+              "line": 2,
+              "character": 17
+            }
+          },
+          "newText": "Basket"
+        }
+      ]
+    }
+  ],
+  "problems": [
+    {
+      "file": "shop.sysml",
+      "diagnostic": {
+        "range": {
+          "start": {
+            "line": 5,
+            "character": 4
+          },
+          "end": {
+            "line": 5,
+            "character": 17
+          }
+        },
+        "severity": "warning",
+        "message": "Nothing satisfies requirement HoldItems",
+        "code": "req-has-satisfier"
+      }
+    }
+  ]
+}

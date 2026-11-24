@@ -16,4 +16,4 @@ Modelith のプラグインを初めて書くなら、ここから始めてく�
 - [チェックルール（rules プラグイン）と `modelith check`](https://github.com/modelith/modelith/blob/dev/docs/reference/check-rules.md)
 - [TypeScript のプラグイン（browser プラグイン）](https://github.com/modelith/modelith/blob/dev/docs/reference/script-plugins.md)
 - [JSON Schema](../schema) と [サンプル](../examples)
-- [`@modelith/plugin-sdk`](../packages/typescript)（TypeScript）と [`modelith-plugin-protocol`](../crates/modelith-plugin-protocol)（Rust）
+- [`modelith-plugin-sdk`](../packages/typescript)（TypeScript）と [`modelith-plugin-protocol`](../crates/modelith-plugin-protocol)（Rust）
