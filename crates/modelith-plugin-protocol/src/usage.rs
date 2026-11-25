@@ -2,7 +2,7 @@
 //!
 //! 送る本文は `kind` で区別する 4 種類で、1 回の要求に 1 つ送る。どれも `schemaVersion` に [`USAGE_SCHEMA_VERSION`] を載せる。
 //! 値は、決まった語（列挙）・区分（境目を doc に書いた列挙）・上限つきの回数（[`Count`]）のどれかで、自由な文字列は受けない
-//! （例外は、形と長さを正規表現で決めた版・四半期・ID・コードの場所）。プラグインの名前は送らない。
+//! （例外は、形と長さを正規表現で決めた版・四半期・ID・コードの場所）。プラグインの表示の名前は送らず、ID は公開の登録簿に載っているものだけを送る。
 //! モデルの中身・要素やファイルの名前・エラーの文・端末に残す ID・日時は、どの本文にも入らない（ADR-0026 の 2）。
 //! 受け口は受け取った日（UTC）で足し込む。
 //!
@@ -19,6 +19,8 @@
 //! それ以外の項目は欠けていても、形や値が違っていても、その項目だけを捨てて残りを受ける。
 
 use serde::{Deserialize, Serialize};
+
+use crate::PluginId;
 
 /// 利用状況の本文の形の版。項目の意味・区分の境目・値の一覧を変える（消す・改名する）ときに 1 つ上げる。
 /// 項目や列挙の値を足すだけなら上げない（受け手は知らないものを捨てるので、古い受け手も壊れない）。
@@ -159,10 +161,15 @@ pub struct DailyReport {
     /// チェックの実行。
     #[serde(default)]
     pub checks: Checks,
-    /// プラグインの機能（チェック・コマンド・エクスポートなど）を使った回数。どのプラグインかは送らない
-    /// （公開の登録簿ができるまで名前を入れない。入れるときは任意の項目として足す）。
+    /// プラグインの機能（チェック・コマンド・エクスポートなど）を使った回数（すべてのプラグインの合計）。
     #[serde(default)]
     pub plugin_uses: Count,
+    /// 公開の登録簿にあるプラグインの、ID ごとの使った回数（ADR-0026 の「決めたこと（2026-11-26）」）。
+    /// 送り手は登録簿の索引に載っている ID だけを入れ、索引を取れなかった日は空にする。受け口も、載っていない ID を捨てる。
+    /// 同じ ID が 2 度あれば、受け口は足し合わせる。
+    #[serde(default)]
+    #[cfg_attr(feature = "codegen", schemars(length(max = 20)))]
+    pub plugin_uses_by_id: Vec<PluginUse>,
     /// AI による書き換え（MCP）の回数。アプリが数えられるのは modelith 0.4.0 から。
     #[serde(default)]
     pub ai_rewrites: Count,
@@ -439,6 +446,16 @@ pub struct Checks {
     pub problems_10_to_99: Count,
     /// 100 件以上だった回数。
     pub problems_100_or_more: Count,
+}
+
+/// 公開の登録簿にあるプラグイン 1 つの、使った回数。
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[cfg_attr(feature = "codegen", derive(schemars::JsonSchema, ts_rs::TS))]
+#[serde(rename_all = "camelCase")]
+pub struct PluginUse {
+    /// 登録簿の索引に載っているプラグインの ID。
+    pub id: PluginId,
+    pub count: Count,
 }
 
 /// 解析の時間の区分ごとの回数（ファイルの大きさ × 時間を 1 つの項目として数える）。
@@ -825,6 +842,39 @@ mod tests {
             (daily.edits, daily.exports.clipboard, daily.plugin_uses),
             (Edits::default(), Count::default(), Count::default())
         );
+        assert!(daily.plugin_uses_by_id.is_empty());
+    }
+
+    #[test]
+    fn daily_report_reads_plugin_uses_by_id() {
+        // Arrange
+        let json = json!({
+            "kind": "daily", "schemaVersion": 1, "client": "web", "appVersion": "0.3.0",
+            "channel": "stable",
+            "pluginUsesById": [{ "id": "com.example.fmea-check", "count": 4 }]
+        });
+        // Act
+        let report: UsageReport = serde_json::from_value(json).unwrap();
+        // Assert
+        let UsageReport::Daily(daily) = report else {
+            panic!("not daily")
+        };
+        let uses: Vec<(String, u32)> = daily
+            .plugin_uses_by_id
+            .iter()
+            .map(|u| (u.id.to_string(), u.count.get()))
+            .collect();
+        assert_eq!(uses, [("com.example.fmea-check".to_string(), 4)]);
+    }
+
+    #[test]
+    fn plugin_use_rejects_an_invalid_id() {
+        // Arrange（異常系: 逆ドメイン形式でない ID）
+        let json = json!({ "id": "Not An Id", "count": 1 });
+        // Act
+        let result = serde_json::from_value::<PluginUse>(json);
+        // Assert
+        assert!(result.is_err());
     }
 
     #[test]

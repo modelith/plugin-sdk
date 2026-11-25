@@ -616,6 +616,12 @@ problems10To99: Count,
  */
 problems100OrMore: Count, };
 
+export type PluginUse = { 
+/**
+ * 登録簿の索引に載っているプラグインの ID。
+ */
+id: PluginId, count: Count, };
+
 export type ParseTime = { fileSize: SizeClass, duration: ParseDurationClass, count: Count, };
 
 export type StackFrame = { 
@@ -701,10 +707,15 @@ exports: Exports,
  */
 checks: Checks, 
 /**
- * プラグインの機能（チェック・コマンド・エクスポートなど）を使った回数。どのプラグインかは送らない
- * （公開の登録簿ができるまで名前を入れない。入れるときは任意の項目として足す）。
+ * プラグインの機能（チェック・コマンド・エクスポートなど）を使った回数（すべてのプラグインの合計）。
  */
 pluginUses: Count, 
+/**
+ * 公開の登録簿にあるプラグインの、ID ごとの使った回数（ADR-0026 の「決めたこと（2026-11-26）」）。
+ * 送り手は登録簿の索引に載っている ID だけを入れ、索引を取れなかった日は空にする。受け口も、載っていない ID を捨てる。
+ * 同じ ID が 2 度あれば、受け口は足し合わせる。
+ */
+pluginUsesById: Array<PluginUse>, 
 /**
  * AI による書き換え（MCP）の回数。アプリが数えられるのは modelith 0.4.0 から。
  */

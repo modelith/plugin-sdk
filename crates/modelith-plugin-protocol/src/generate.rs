@@ -145,6 +145,7 @@ fn typescript() -> String {
         Saves::decl(&cfg),
         Exports::decl(&cfg),
         Checks::decl(&cfg),
+        PluginUse::decl(&cfg),
         ParseTime::decl(&cfg),
         StackFrame::decl(&cfg),
         StartupReport::decl(&cfg),

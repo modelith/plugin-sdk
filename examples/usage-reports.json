@@ -33,6 +33,7 @@
     "exports": { "svg": 1, "png": 0, "jpeg": 0, "drawio": 2, "clipboard": 3 },
     "checks": { "runs": 9, "noProblems": 3, "problems1To9": 5, "problems10To99": 1, "problems100OrMore": 0 },
     "pluginUses": 13,
+    "pluginUsesById": [{ "id": "com.example.fmea-check", "count": 4 }],
     "aiRewrites": 2,
     "parseTimes": [
       { "fileSize": "lt10kb", "duration": "lt100ms", "count": 40 },
