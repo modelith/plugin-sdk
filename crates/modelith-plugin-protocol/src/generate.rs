@@ -17,6 +17,10 @@ pub fn files() -> Vec<(&'static str, String)> {
             "schema/registry-entry.schema.json",
             json(schema_for!(RegistryEntry)),
         ),
+        (
+            "schema/registry-index.schema.json",
+            json(schema_for!(RegistryIndex)),
+        ),
         ("schema/rule-set.schema.json", json(schema_for!(RuleSet))),
         (
             "schema/host-message.schema.json",
@@ -86,6 +90,7 @@ fn typescript() -> String {
         Pricing::decl(&cfg),
         RegistryVersion::decl(&cfg),
         RegistryEntry::decl(&cfg),
+        RegistryIndex::decl(&cfg),
         RuleId::decl(&cfg),
         OneOrMany::decl(&cfg),
         CountRange::decl(&cfg),

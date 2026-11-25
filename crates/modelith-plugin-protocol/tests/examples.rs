@@ -7,7 +7,7 @@ use std::path::Path;
 
 use modelith_plugin_protocol::{
     EditProposal, EditRequest, ElementDetail, HostMessage, PluginManifest, PluginMessage,
-    ProblemReport, ProjectOutline, RegistryEntry, RuleSet, UsageReport,
+    ProblemReport, ProjectOutline, RegistryEntry, RegistryIndex, RuleSet, UsageReport,
 };
 use serde::{Serialize, de::DeserializeOwned};
 use serde_json::Value;
@@ -44,6 +44,36 @@ fn registry_entry_parses() {
     let result = serde_json::from_str::<RegistryEntry>(&json);
     // Assert
     assert!(result.is_ok(), "{result:?}");
+}
+
+#[test]
+fn registry_index_parses() {
+    // Arrange
+    let json = read("registry-index.json");
+    // Act
+    let result = serde_json::from_str::<RegistryIndex>(&json);
+    // Assert
+    assert_eq!(result.map(|i| i.plugins.len()).ok(), Some(1));
+}
+
+#[test]
+fn registry_index_ignores_unknown_fields() {
+    // Arrange（新しい索引に、古いアプリの知らないフィールドがある）
+    let json = r#"{ "plugins": [], "generatedAt": "2026-11-26" }"#;
+    // Act
+    let result = serde_json::from_str::<RegistryIndex>(json);
+    // Assert
+    assert_eq!(result.ok(), Some(RegistryIndex::default()));
+}
+
+#[test]
+fn registry_index_requires_plugins() {
+    // Arrange
+    let json = "{}";
+    // Act
+    let result = serde_json::from_str::<RegistryIndex>(json);
+    // Assert
+    assert!(result.is_err());
 }
 
 #[test]

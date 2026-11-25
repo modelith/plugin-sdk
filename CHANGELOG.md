@@ -8,6 +8,11 @@ Before 1.0.0 (`apiVersion` `"0"`), any release may change the contract.
 
 ## [Unreleased]
 
+### Added
+
+- The combined registry index that the app fetches: `RegistryIndex` (`plugins`, a list of `RegistryEntry`),
+  with the JSON Schema `registry-index`. Unknown top-level fields are ignored.
+
 ## [0.2.0] - 2026-11-24
 
 ### Changed
