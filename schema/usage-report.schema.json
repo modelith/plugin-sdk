@@ -439,9 +439,18 @@
           "maxItems": 20
         },
         "pluginUses": {
-          "description": "プラグインの機能（チェック・コマンド・エクスポートなど）を使った回数。どのプラグインかは送らない\n（公開の登録簿ができるまで名前を入れない。入れるときは任意の項目として足す）。",
+          "description": "プラグインの機能（チェック・コマンド・エクスポートなど）を使った回数（すべてのプラグインの合計）。",
           "$ref": "#/$defs/Count",
           "default": 0
+        },
+        "pluginUsesById": {
+          "description": "公開の登録簿にあるプラグインの、ID ごとの使った回数（ADR-0026 の「決めたこと（2026-11-26）」）。\n送り手は登録簿の索引に載っている ID だけを入れ、索引を取れなかった日は空にする。受け口も、載っていない ID を捨てる。\n同じ ID が 2 度あれば、受け口は足し合わせる。",
+          "type": "array",
+          "default": [],
+          "items": {
+            "$ref": "#/$defs/PluginUse"
+          },
+          "maxItems": 20
         },
         "saves": {
           "description": "保存先ごとの保存の回数。",
@@ -929,6 +938,28 @@
       "required": [
         "fileSize",
         "duration",
+        "count"
+      ]
+    },
+    "PluginId": {
+      "description": "Reverse-domain plugin id, e.g. \"com.example.my-plugin\".",
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9-]*(\\.[a-z][a-z0-9-]*)+$"
+    },
+    "PluginUse": {
+      "description": "公開の登録簿にあるプラグイン 1 つの、使った回数。",
+      "type": "object",
+      "properties": {
+        "count": {
+          "$ref": "#/$defs/Count"
+        },
+        "id": {
+          "description": "登録簿の索引に載っているプラグインの ID。",
+          "$ref": "#/$defs/PluginId"
+        }
+      },
+      "required": [
+        "id",
         "count"
       ]
     },
