@@ -35,6 +35,7 @@ describe("JSON Schema accepts the shared examples", () => {
   const ajv = new Ajv2020.default({ strict: false });
   const manifest = ajv.compile(readJson("schema/plugin-manifest.schema.json"));
   const entry = ajv.compile(readJson("schema/registry-entry.schema.json"));
+  const index = ajv.compile(readJson("schema/registry-index.schema.json"));
   const ruleSet = ajv.compile(readJson("schema/rule-set.schema.json"));
   const hostMessage = ajv.compile(readJson("schema/host-message.schema.json"));
   const pluginMessage = ajv.compile(readJson("schema/plugin-message.schema.json"));
@@ -56,6 +57,29 @@ describe("JSON Schema accepts the shared examples", () => {
     const valid = entry(json);
     // Assert
     expect(valid, JSON.stringify(entry.errors)).toBe(true);
+  });
+
+  it("registry-index.json", () => {
+    // Arrange
+    const json = readJson("examples", "registry-index.json");
+    // Act
+    const valid = index(json);
+    // Assert
+    expect(valid, JSON.stringify(index.errors)).toBe(true);
+  });
+
+  it.each([
+    ["an empty index", { plugins: [] }, true],
+    ["an unknown top-level field", { plugins: [], generatedAt: "2026-11-26" }, true],
+    ["no plugins", {}, false],
+    ["an entry with an unknown field", { plugins: [{ ...readJson("examples", "registry-entry.json"), extra: 1 }] }, false],
+  ])("registry index: %s", (_: string, json: object, expected: boolean) => {
+    // Arrange（Rust 側の tests/examples.rs と同じ同値クラス）
+    const candidate = json;
+    // Act
+    const valid = index(candidate);
+    // Assert
+    expect(valid).toBe(expected);
   });
 
   it("rule-set.json", () => {

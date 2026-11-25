@@ -136,6 +136,12 @@ repository: string, apiVersion: string, runtime: Runtime,
  */
 license: string, pricing: Pricing, versions: Array<RegistryVersion>, };
 
+export type RegistryIndex = { 
+/**
+ * 登録されたプラグイン。ID の順に並べる。
+ */
+plugins: Array<RegistryEntry>, };
+
 export type RuleId = string;
 
 export type OneOrMany = string | Array<string>;

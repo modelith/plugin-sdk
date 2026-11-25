@@ -63,7 +63,7 @@ Everything in the contract is exported as a type:
 | Rule files | `RuleSet`, `Rule`, `ElementMatch`, `Requirement`, … |
 | Messages | `HostMessage`, `PluginMessage`, `ModelSnapshot`, `ModelElement`, `ModelRelation`, … |
 | Edits and diagnostics | `TextEdit`, `Diagnostic`, `Range`, `Position` |
-| Registry | `RegistryEntry`, `RegistryVersion`, `Publisher`, `Pricing` |
+| Registry | `RegistryIndex`, `RegistryEntry`, `RegistryVersion`, `Publisher`, `Pricing` |
 
 Constants and helpers:
 
@@ -81,7 +81,7 @@ The package ships the JSON Schemas too, for editors and CI:
 import manifestSchema from "modelith-plugin-sdk/schema/plugin-manifest.schema.json" with { type: "json" };
 ```
 
-Available: `plugin-manifest`, `rule-set`, `host-message`, `plugin-message`, `registry-entry`.
+Available: `plugin-manifest`, `rule-set`, `host-message`, `plugin-message`, `registry-entry`, `registry-index`.
 
 ## License
 

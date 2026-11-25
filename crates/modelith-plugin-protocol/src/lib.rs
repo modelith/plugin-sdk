@@ -30,7 +30,7 @@ pub use read::{
     DiagramSummary, ElementDetail, ElementRelation, ElementSummary, ProblemReport, ProjectFile,
     ProjectOutline, RelationDirection,
 };
-pub use registry::{Pricing, Publisher, RegistryEntry, RegistryVersion};
+pub use registry::{Pricing, Publisher, RegistryEntry, RegistryIndex, RegistryVersion};
 pub use rules::{
     CountRange, ElementMatch, OneOrMany, RULE_ID_PATTERN, Requirement, Rule, RuleId, RuleIdError,
     RuleSet,

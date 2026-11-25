@@ -1,4 +1,4 @@
-//! `plugin-registry` の索引エントリ（1 プラグイン 1 ファイル）。
+//! `plugin-registry` の索引エントリ（1 プラグイン 1 ファイル）と、それを 1 つにまとめた索引。
 
 use serde::{Deserialize, Serialize};
 
@@ -24,6 +24,22 @@ pub struct RegistryEntry {
     pub license: String,
     pub pricing: Pricing,
     pub versions: Vec<RegistryVersion>,
+}
+
+/// 登録簿の全エントリを 1 つにまとめた索引（`index.json`）。アプリはこれを取りに行く。
+///
+/// 古いアプリが新しい索引を読めるよう、知らないフィールドは無視する。
+/// 読めないエントリがあっても、アプリはそのエントリだけを飛ばして残りを使う。
+#[derive(Debug, Clone, PartialEq, Eq, Default, Serialize, Deserialize)]
+#[cfg_attr(feature = "codegen", derive(schemars::JsonSchema, ts_rs::TS))]
+#[serde(rename_all = "camelCase")]
+#[cfg_attr(
+    feature = "codegen",
+    schemars(title = "Modelith plugin registry index")
+)]
+pub struct RegistryIndex {
+    /// 登録されたプラグイン。ID の順に並べる。
+    pub plugins: Vec<RegistryEntry>,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
