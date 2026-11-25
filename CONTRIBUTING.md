@@ -121,25 +121,25 @@ A maintainer sets these up once, in the repository settings:
   - Environment secret `CARGO_REGISTRY_TOKEN`: a crates.io API token with only the `publish-new` and `publish-update` scopes,
     limited to the crate `modelith-plugin-protocol`, with an expiry date. Replace it before it expires.
   - No npm token is stored: the workflow reaches npm through trusted publishing.
-- **npm, once** (npm 11.15.0 or later; never put a token or a one-time password in the repository, an issue or a chat):
-  1. Publish the first version by hand. Trusted publishing can only be set up for a package that is already on npm.
-     Publish the `.tgz` the workflow built and attached to the release, not a local build:
-
-     ```sh
-     npm login
-     curl -LO https://github.com/modelith/plugin-sdk/releases/download/v<version>/modelith-plugin-sdk-<version>.tgz
-     npm publish ./modelith-plugin-sdk-<version>.tgz --tag latest   # --tag next for a pre-release
-     ```
-
-  2. Register the trusted publisher, allowing staging only (do not add `--allow-publish`):
+- **npm** (npm 11.15.0 or later; never put a token or a one-time password in the repository, an issue or a chat).
+  The package is owned by the npm account used for publishing, the same one as `modelith-cli`. Version 0.2.0 was published by hand,
+  from the `.tgz` the workflow attached to the release; every later version goes through the workflow.
+  1. Register the trusted publisher, allowing staging only (do not add `--allow-publish`), on npmjs.com
+     (the package's Settings → Trusted Publisher) or from the command line:
 
      ```sh
      npm trust github modelith-plugin-sdk --repo modelith/plugin-sdk --file release.yml --allow-stage-publish
      ```
 
-  3. In the package's settings on npmjs.com, choose "Require two-factor authentication and disallow tokens".
-  4. In the repository's Settings → Secrets and variables → Actions → Variables, add `NPM_STAGE_PUBLISH` = `true`.
+     A new registration is "Pending validation": npm validates it when the workflow publishes for the first time, and gives
+     about two days to do so. A publish by hand does not validate it. So register it shortly before a release, and check
+     after that release that the status is no longer pending. If the time runs out, register it again before the next release.
+  2. In the package's settings on npmjs.com, choose "Require two-factor authentication and disallow bypass 2fa tokens".
+  3. In the repository's Settings → Secrets and variables → Actions → Variables, add `NPM_STAGE_PUBLISH` = `true`.
      Until then the workflow skips the npm job.
+
+  Registering a trusted publisher for a name that is not on npm yet creates a placeholder version `0.0.0-stage`.
+  It is not a release; `latest` moves to the first real version.
 
 ## Adding or updating dependencies
 
