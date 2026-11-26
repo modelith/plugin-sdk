@@ -58,6 +58,8 @@ jobs:
       contents: write  # GitHub Release を作り、.tgz を添付する
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false  # 書き込みのトークンを .git に残さない（添付は GH_TOKEN で行う）
       - name: Update rustup itself
         run: |
           rustup self update
