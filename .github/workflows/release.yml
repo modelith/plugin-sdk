@@ -56,6 +56,7 @@ jobs:
     environment: release
     permissions:
       contents: write  # GitHub Release を作り、.tgz を添付する
+      id-token: write  # crates.io に、このワークフローであることを示す（Trusted Publishing）
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -73,10 +74,14 @@ jobs:
           check-latest: true
       - run: npm ci --prefix packages/typescript --ignore-scripts --no-audit --no-fund
       - run: npm run --prefix packages/typescript build
+      # crates.io の結び付け（Trusted Publishing）で、この実行の間だけ使えるトークンをもらう。リポジトリに鍵を置かない
+      - name: Get a short-lived crates.io token
+        id: crates-io
+        uses: rust-lang/crates-io-auth-action@3268eb413133e2960fa4ae0e963ca76380c54cd9 # v1.0.6
       # やり直したときに落ちないよう、crate は版が無いときだけ公開し、リリースは有れば添付し直す
       - name: Publish the crate to crates.io
         env:
-          CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
+          CARGO_REGISTRY_TOKEN: ${{ steps.crates-io.outputs.token }}
         run: |
           version="${GITHUB_REF_NAME#v}"
           if curl -fsS -A "modelith/plugin-sdk release" "https://crates.io/api/v1/crates/modelith-plugin-protocol/$version" >/dev/null 2>&1; then
