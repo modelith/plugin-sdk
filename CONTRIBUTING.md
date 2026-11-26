@@ -118,9 +118,13 @@ A maintainer sets these up once, in the repository settings:
 - **Settings → Environments → New environment `release`**
   - Required reviewers: the maintainers who approve each release.
   - Deployment branches and tags: tags matching `v*` only.
-  - Environment secret `CARGO_REGISTRY_TOKEN`: a crates.io API token with only the `publish-new` and `publish-update` scopes,
-    limited to the crate `modelith-plugin-protocol`, with an expiry date. Replace it before it expires.
-  - No npm token is stored: the workflow reaches npm through trusted publishing.
+  - No crates.io or npm token is stored: the workflow reaches both through trusted publishing.
+- **crates.io** (an owner of `modelith-plugin-protocol` does this; never put a token in the repository, an issue or a chat):
+  1. On crates.io, open the crate's Settings → Trusted Publishing and add a GitHub publisher:
+     repository owner `modelith`, repository `plugin-sdk`, workflow `release.yml`, environment `release`.
+  2. Publish one release through the workflow to check that it works.
+  3. Then delete the environment secret `CARGO_REGISTRY_TOKEN` if it is still there, revoke that token on crates.io
+     (Account Settings → API Tokens). If the crate's settings offer an option to allow only trusted publishing, turn it on.
 - **npm** (npm 11.15.0 or later; never put a token or a one-time password in the repository, an issue or a chat).
   The package is owned by the npm account used for publishing, the same one as `modelith-cli`. Version 0.2.0 was published by hand,
   from the `.tgz` the workflow attached to the release; every later version goes through the workflow.
