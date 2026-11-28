@@ -308,7 +308,7 @@ pub enum Client {
     Server,
 }
 
-/// アプリの公開の系列（modelith の ADR-0022）。
+/// アプリの公開の系列（modelith の ADR-0022）。公式に公開したビルドだけが `stable`・`rc`・`preview` を名乗る。
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 #[cfg_attr(feature = "codegen", derive(schemars::JsonSchema, ts_rs::TS))]
 #[serde(rename_all = "camelCase")]
@@ -316,6 +316,8 @@ pub enum Channel {
     Stable,
     Rc,
     Preview,
+    /// 公式に公開したもの以外のビルド（手元でビルドしたもの・フォークが配るもの。modelith の ADR-0026）。
+    Other,
 }
 
 /// 自動の図の種類ごとの回数（アプリの自動の図の id ごと）。
@@ -804,6 +806,21 @@ mod tests {
             (s.sender.client, s.sender.channel, s.startup_time),
             (Client::Web, Channel::Rc, DurationClass::From1To3s)
         );
+    }
+
+    #[test]
+    fn channel_other_is_written_as_other() {
+        // Arrange: 公式に公開したもの以外のビルドの起動の報告
+        let mut json = startup();
+        json["channel"] = "other".into();
+        // Act
+        let report: UsageReport = serde_json::from_value(json.clone()).unwrap();
+        // Assert: 読めて、書き戻しても同じ値になる
+        let UsageReport::Startup(s) = &report else {
+            panic!("not startup")
+        };
+        assert_eq!(s.sender.channel, Channel::Other);
+        assert_eq!(serde_json::to_value(&report).unwrap()["channel"], "other");
     }
 
     #[test]

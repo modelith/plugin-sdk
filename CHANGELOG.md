@@ -15,6 +15,8 @@ Before 1.0.0 (`apiVersion` `"0"`), any release may change the contract.
 - In the daily usage report, `pluginUsesById`: how often each plugin was used, by plugin id (up to 20).
   Only ids listed in the public registry index are sent, and the endpoint drops the others (Modelith's ADR-0026).
   `pluginUses`, the total, stays.
+- In the usage reports, the channel `other`: builds that are not published officially (local builds, builds that forks
+  distribute) report this channel, so their counts can be told apart from the official builds (Modelith's ADR-0026).
 
 ## [0.2.0] - 2026-11-24
 

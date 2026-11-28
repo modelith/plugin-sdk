@@ -167,12 +167,21 @@
       ]
     },
     "Channel": {
-      "description": "アプリの公開の系列（modelith の ADR-0022）。",
-      "type": "string",
-      "enum": [
-        "stable",
-        "rc",
-        "preview"
+      "description": "アプリの公開の系列（modelith の ADR-0022）。公式に公開したビルドだけが `stable`・`rc`・`preview` を名乗る。",
+      "oneOf": [
+        {
+          "type": "string",
+          "enum": [
+            "stable",
+            "rc",
+            "preview"
+          ]
+        },
+        {
+          "description": "公式に公開したもの以外のビルド（手元でビルドしたもの・フォークが配るもの。modelith の ADR-0026）。",
+          "type": "string",
+          "const": "other"
+        }
       ]
     },
     "Checks": {
