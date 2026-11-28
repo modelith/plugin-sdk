@@ -452,7 +452,7 @@ problems: Array<ProblemReport>, };
 
 export type Count = number;
 
-export type Channel = "stable" | "rc" | "preview";
+export type Channel = "stable" | "rc" | "preview" | "other";
 
 export type Client = "web" | "server";
 
